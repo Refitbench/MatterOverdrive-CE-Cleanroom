@@ -77,6 +77,7 @@ public class ConfigurationHandler {
 	public static final String CATEGORY_ANDROID_HUD = CATEGORY_CLIENT + "." + "android_hud";
 	public static final String CATEGORY_SERVER = "server";
 	public static final String CATEGORY_STARMAP = "starmap";
+	public static final String KEY_STARMAP_ENABLED = "enabled";
 	public static final String CATEGORY_ENCHANTMENTS = "enchantments";
 	public static final String CATEGORY_ENTITIES = "entities";
 	public static final String CATEGORY_ANDROID_PLAYER = CATEGORY_ENTITIES + "." + "android_player";
@@ -110,6 +111,7 @@ public class ConfigurationHandler {
 
 	public final Configuration config;
 	private final Set<IConfigSubscriber> subscribers;
+	public boolean starmapEnabled;
 
 	public ConfigurationHandler(File configDir) {
 		this.configDir = configDir;
@@ -161,6 +163,13 @@ public class ConfigurationHandler {
 		category = config.getCategory(CATEGORY_ABILITIES);
 		category.setComment("Android Player Abilities");
 		updateCategoryLang(category);
+		category = config.getCategory(CATEGORY_STARMAP);
+		category.setComment("Starmap feature options.");
+		updateCategoryLang(category);
+		starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_STARMAP, false,
+				"Enable the Starmap feature. WARNING: This feature is incomplete and under active development. "
+						+ "Leave disabled unless enabling for development purposes.");
+
 		category = config.getCategory(CATEGORY_COMPATIBILITY);
 		category.setComment("Option for other mods");
 		updateCategoryLang(category);
@@ -283,6 +292,7 @@ public class ConfigurationHandler {
 	@SubscribeEvent
 	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
 		if (eventArgs.getModID().equals(Reference.MOD_ID)) {
+			starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_STARMAP, false, "");
 			config.save();
 		}
 

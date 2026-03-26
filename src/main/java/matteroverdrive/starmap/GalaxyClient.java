@@ -2,6 +2,7 @@
 package matteroverdrive.starmap;
 
 import matteroverdrive.api.starmap.IShip;
+import matteroverdrive.starmap.data.Galaxy;
 import matteroverdrive.starmap.data.Planet;
 import matteroverdrive.starmap.data.Star;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class GalaxyClient extends GalaxyCommon {
 	// region Private Vars
 	private static GalaxyClient instance;
+	private Galaxy decorativeGalaxy;
 	// endregion
 
 	// region Constructors
@@ -70,6 +72,18 @@ public class GalaxyClient extends GalaxyCommon {
 		}
 
 		return instance;
+	}
+
+	@Override
+	public Galaxy getTheGalaxy() {
+		if (theGalaxy != null) {
+			return theGalaxy;
+		}
+		if (decorativeGalaxy == null) {
+			GalaxyGenerator generator = new GalaxyGenerator();
+			decorativeGalaxy = generator.generateGalaxy("Decorative", 0, 42L, null);
+		}
+		return decorativeGalaxy;
 	}
 	// endregion
 }

@@ -33,11 +33,12 @@ public class CommonProxy {
 	}
 
 	public void init(FMLInitializationEvent event) {
-		MinecraftForge.EVENT_BUS.register(GalaxyServer.getInstance());
 		MinecraftForge.EVENT_BUS.register(getWeaponHandler());
-		MinecraftForge.EVENT_BUS.register(GalaxyServer.getInstance());
-		MatterOverdrive.CONFIG_HANDLER.subscribe(GalaxyServer.getInstance());
-		MatterOverdrive.CONFIG_HANDLER.subscribe(GalaxyServer.getInstance().getGalaxyGenerator());
+		if (MatterOverdrive.CONFIG_HANDLER.starmapEnabled) {
+			MinecraftForge.EVENT_BUS.register(GalaxyServer.getInstance());
+			MatterOverdrive.CONFIG_HANDLER.subscribe(GalaxyServer.getInstance());
+			MatterOverdrive.CONFIG_HANDLER.subscribe(GalaxyServer.getInstance().getGalaxyGenerator());
+		}
 	}
 
 	public void postInit(FMLPostInitializationEvent event) {

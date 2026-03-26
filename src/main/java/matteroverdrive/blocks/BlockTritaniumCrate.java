@@ -2,6 +2,7 @@ package matteroverdrive.blocks;
 
 import matteroverdrive.Reference;
 import matteroverdrive.api.wrench.IDismantleable;
+import matteroverdrive.handler.ConfigurationHandler;
 import matteroverdrive.blocks.includes.MOBlock;
 import matteroverdrive.blocks.includes.MOBlockMachine;
 import matteroverdrive.data.Inventory;
@@ -101,7 +102,7 @@ public class BlockTritaniumCrate extends MOBlockMachine<TileEntityTritaniumCrate
 			// FMLNetworkHandler.openGui(entityPlayer, MatterOverdrive.instance,
 			// GuiHandler.TRITANIUM_CRATE, world, x, y, z);
 			worldIn.playSound(null, pos.getX(), pos.getY(), pos.getZ(), MatterOverdriveSounds.blocksCrateOpen,
-					SoundCategory.BLOCKS, 0.5f, 1);
+					SoundCategory.BLOCKS, volume, 1);
 			playerIn.displayGUIChest(((TileEntityTritaniumCrate) entity).getInventory());
 			return true;
 		}
@@ -136,5 +137,12 @@ public class BlockTritaniumCrate extends MOBlockMachine<TileEntityTritaniumCrate
 		}
 
 		return new ArrayList<>();
+	}
+
+	@Override
+	public void onConfigChanged(ConfigurationHandler config) {
+		// All color variants share a single config entry so volume is consistent.
+		config.initMachineCategory("tile.tritanium_crate");
+		volume = (float) config.getMachineDouble("tile.tritanium_crate", "volume", 1, "The volume of the Tritanium Crate");
 	}
 }

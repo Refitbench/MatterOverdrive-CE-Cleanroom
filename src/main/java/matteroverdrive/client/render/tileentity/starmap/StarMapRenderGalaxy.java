@@ -9,6 +9,7 @@ import matteroverdrive.starmap.data.Galaxy;
 import matteroverdrive.starmap.data.Planet;
 import matteroverdrive.starmap.data.Quadrant;
 import matteroverdrive.starmap.data.SpaceBody;
+import matteroverdrive.starmap.data.Star;
 import matteroverdrive.starmap.data.TravelEvent;
 import matteroverdrive.tile.TileEntityMachineStarMap;
 import matteroverdrive.util.MOStringHelper;
@@ -46,6 +47,7 @@ public class StarMapRenderGalaxy extends StarMapRendererStars {
 		Tessellator.getInstance().getBuffer().begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 		for (Quadrant quadrant : galaxy.getQuadrants()) {
 			renderStars(quadrant, starMap, distanceMultiply, 2);
+			renderPlanets(quadrant, distanceMultiply);
 		}
 		Tessellator.getInstance().draw();
 		GlStateManager.disableTexture2D();
@@ -111,6 +113,23 @@ public class StarMapRenderGalaxy extends StarMapRendererStars {
             }
         }
 		GlStateManager.disableAlpha();
+	}
+
+	protected void renderPlanets(Quadrant quadrant, double distanceMultiply) {
+		for (Star star : quadrant.getStars()) {
+			int planetID = 0;
+			for (Planet planet : star.getPlanets()) {
+				double angle = planetID * 2.4;
+				double offset = (planet.getOrbit() * 0.03 + 0.01) * distanceMultiply;
+				double px = star.getX() * distanceMultiply + Math.cos(angle) * offset;
+				double py = star.getY() * distanceMultiply;
+				double pz = star.getZ() * distanceMultiply + Math.sin(angle) * offset;
+				Color planetColor = new Color(star.getColor()).multiplyWithoutAlpha(0.6f);
+				RenderUtils.tessalateParticle(Minecraft.getMinecraft().getRenderViewEntity(),
+						star_icon, planet.getSize() * 0.004, new Vec3d(px, py, pz), planetColor);
+				planetID++;
+			}
+		}
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -149,6 +150,9 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 
 	@Override
 	public void update() {
+		if (!MatterOverdrive.CONFIG_HANDLER.starmapEnabled) {
+			return;
+		}
 		super.update();
 	}
 
@@ -285,4 +289,20 @@ public class TileEntityMachineStarMap extends MOTileEntityMachineEnergy {
 		
 	}
 
+	@Override
+	public boolean hasCapability(@javax.annotation.Nonnull Capability<?> capability, @javax.annotation.Nullable EnumFacing facing) {
+		if (!MatterOverdrive.CONFIG_HANDLER.starmapEnabled) {
+			return false;
+		}
+		return super.hasCapability(capability, facing);
+	}
+
+	@javax.annotation.Nonnull
+	@Override
+	public <T> T getCapability(@javax.annotation.Nonnull Capability<T> capability, @javax.annotation.Nullable EnumFacing facing) {
+		if (!MatterOverdrive.CONFIG_HANDLER.starmapEnabled) {
+			return null;
+		}
+		return super.getCapability(capability, facing);
+	}
 }

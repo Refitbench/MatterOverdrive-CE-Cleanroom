@@ -1,6 +1,7 @@
 
 package matteroverdrive.blocks;
 
+import matteroverdrive.MatterOverdrive;
 import matteroverdrive.blocks.includes.MOBlockMachine;
 import matteroverdrive.tile.TileEntityMachineStarMap;
 import net.minecraft.block.material.Material;
@@ -28,6 +29,9 @@ public class BlockStarMap extends MOBlockMachine<TileEntityMachineStarMap> {
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
 			EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		if (!MatterOverdrive.CONFIG_HANDLER.starmapEnabled) {
+			return true;
+		}
 		if (playerIn.isSneaking()) {
 			TileEntityMachineStarMap starMap = (TileEntityMachineStarMap) worldIn.getTileEntity(pos);
 			starMap.zoom();
