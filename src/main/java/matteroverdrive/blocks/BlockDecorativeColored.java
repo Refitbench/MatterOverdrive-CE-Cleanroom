@@ -1,7 +1,6 @@
 package matteroverdrive.blocks;
 
 import matteroverdrive.api.internal.OreDictItem;
-import matteroverdrive.util.MOStringHelper;
 import matteroverdrive.MatterOverdrive;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
@@ -47,14 +46,15 @@ public class BlockDecorativeColored extends BlockDecorative implements OreDictIt
 	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack itemstack, @Nullable World worldIn, List<String> infos, ITooltipFlag flagIn) {
 		if (itemstack != null) {
-			//if (!infos.isEmpty()) {
 			String name = infos.get(0);
-			name = MOStringHelper.translateToLocal(EnumDyeColor
+			String colorKey = EnumDyeColor
 					.byDyeDamage(MathHelper.clamp(itemstack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1))
-					.getTranslationKey() + " " + name);
-			infos.set(0, name);
-		//}
-	}
+					.getTranslationKey();
+			// Convert camelCase to Title Case words: "lightBlue" -> "Light Blue"
+			String colorName = colorKey.replaceAll("([A-Z])", " $1");
+			colorName = Character.toUpperCase(colorName.charAt(0)) + colorName.substring(1);
+			infos.set(0, colorName + " " + name);
+		}
 	}
 
 	@Override

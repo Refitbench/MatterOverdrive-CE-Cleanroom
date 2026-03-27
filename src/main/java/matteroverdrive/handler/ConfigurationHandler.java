@@ -110,6 +110,7 @@ public class ConfigurationHandler {
 	public final Configuration config;
 	private final Set<IConfigSubscriber> subscribers;
 	public boolean starmapEnabled;
+	public boolean pylonEnabled;
 
 	public ConfigurationHandler(File configDir) {
 		this.configDir = configDir;
@@ -152,6 +153,9 @@ public class ConfigurationHandler {
 		category = config.getCategory(CATEGORY_MACHINES);
 		category.setComment("Machine Options.");
 		updateCategoryLang(category);
+		pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_MACHINES, false,
+				"Enable the Dimensional Pylon feature. WARNING: This feature is incomplete and under active development. "
+						+ "Leave disabled unless enabling for development purposes.");
 		category = config.getCategory(CATEGORY_WORLD_GEN);
 		category.setComment("World Generation options.");
 		updateCategoryLang(category);
@@ -288,6 +292,7 @@ public class ConfigurationHandler {
 	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
 		if (eventArgs.getModID().equals(Reference.MOD_ID)) {
 			starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_STARMAP, false, "");
+			pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_MACHINES, false, "");
 			config.save();
 		}
 

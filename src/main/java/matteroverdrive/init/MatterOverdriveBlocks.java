@@ -138,16 +138,16 @@ public class MatterOverdriveBlocks {
 		recycler_running = register(new BlockMatterRecycler(TRITANIUM, "matter_recycler_running"));
 		recycler_running.setCreativeTab(null);
 		replicator = register(new BlockReplicator(TRITANIUM, "replicator"));
-		matter_pipe = register(new BlockMatterPipe(TRITANIUM, "matter_pipe"));
-		heavy_matter_pipe = register(new BlockHeavyMatterPipe(TRITANIUM, "heavy_matter_pipe"));
-		network_pipe = register(new BlockNetworkPipe(TRITANIUM, "network_pipe"));
-		network_router = register(new BlockNetworkRouter(TRITANIUM, "network_router"));
 		matter_analyzer = register(new BlockMatterAnalyzer(TRITANIUM, "matter_analyzer"));
 		matter_analyzer_running = register(new BlockMatterAnalyzer(TRITANIUM, "matter_analyzer_running"));
 		matter_analyzer_running.setCreativeTab(null);
 		pattern_monitor = register(new BlockPatternMonitor(TRITANIUM, "pattern_monitor"));
 		pattern_storage = register(new BlockPatternStorage(TRITANIUM, "pattern_storage"));
 		network_switch = register(new BlockNetworkSwitch(TRITANIUM, "network_switch"));
+		network_router = register(new BlockNetworkRouter(TRITANIUM, "network_router"));
+		network_pipe = register(new BlockNetworkPipe(TRITANIUM, "network_pipe"));
+		matter_pipe = register(new BlockMatterPipe(TRITANIUM, "matter_pipe"));
+		heavy_matter_pipe = register(new BlockHeavyMatterPipe(TRITANIUM, "heavy_matter_pipe"));
 
 //		Energy Generation
 		solar_panel = register(new BlockSolarPanel(TRITANIUM, "solar_panel"));
@@ -164,20 +164,13 @@ public class MatterOverdriveBlocks {
 		blockMatterPlasma = register(new BlockFluidMatterPlasma(OverdriveFluids.matterPlasma, Material.WATER));
 		blockMoltenTritanium = register(new BlockFluidMoltenTritanium(OverdriveFluids.moltenTritanium, Material.LAVA));
 
-//		Storage
-		tritaniumCrate = register(new BlockTritaniumCrate(TRITANIUM, "tritanium_crate"));
-		EnumDyeColor[] colors = EnumDyeColor.values();
-		tritaniumCrateColored = new BlockTritaniumCrate[colors.length];
-		for (EnumDyeColor color : colors)
-			tritaniumCrateColored[color.getMetadata()] = register(
-					new BlockTritaniumCrate(TRITANIUM, "tritanium_crate_" + color.getName()));
-
 //		Machines
 		inscriber = register(new BlockInscriber(TRITANIUM, "inscriber"));
 		contractMarket = register(new BlockContractMarket(TRITANIUM, "contract_market"));
-		androidSpawner = register(new BlockAndroidSpawner(TRITANIUM, "android_spawner"));
 		spacetimeAccelerator = register(new BlockSpacetimeAccelerator(TRITANIUM, "spacetime_accelerator"));
-		pylon = register(new BlockPylon(TRITANIUM, "pylon"));
+		if (MatterOverdrive.CONFIG_HANDLER.pylonEnabled) {
+			pylon = register(new BlockPylon(TRITANIUM, "pylon"));
+		}
 
 //		Misc
 		transporter = register(new BlockTransporter(TRITANIUM, "transporter"));
@@ -186,8 +179,17 @@ public class MatterOverdriveBlocks {
 		weapon_station = register(new BlockWeaponStation(TRITANIUM, "weapon_station"));
 		androidStation = register(new BlockAndroidStation(TRITANIUM, "android_station"));
 		chargingStation = register(new BlockChargingStation(TRITANIUM, "charging_station"));
+		microwave = register(new BlockMicrowave(Material.IRON, "microwave"));
 
 //		Decorative
+		tritaniumCrate = register(new BlockTritaniumCrate(TRITANIUM, "tritanium_crate"));
+		EnumDyeColor[] colors = EnumDyeColor.values();
+		tritaniumCrateColored = new BlockTritaniumCrate[colors.length];
+		for (EnumDyeColor color : colors)
+			tritaniumCrateColored[color.getMetadata()] = register(
+					new BlockTritaniumCrate(TRITANIUM, "tritanium_crate_" + color.getName()));
+		new_tritanium_crate_base = register(new BlockNewTritaniumCrate(TRITANIUM, "new_tritanium_crate", 0));
+		industrialGlass = register(new BlockIndustrialGlass(Material.GLASS, "industrial_glass"));
 		decorative_stripes = register(new BlockDecorative(TRITANIUM, "decorative.stripes", 5, 1, 8, 0xd4b108));
 		decorative_coils = register(new BlockDecorative(TRITANIUM, "decorative.coils", 5, 1, 8, 0xb6621e));
 		decorative_clean = register(new BlockDecorative(TRITANIUM, "decorative.clean", 5, 1, 8, 0x3b484b));
@@ -200,8 +202,6 @@ public class MatterOverdriveBlocks {
 				new BlockDecorative(TRITANIUM, "decorative.tritanium_plate_stripe", 10, 1, 10, 0x576468));
 		decorative_carbon_fiber_plate = register(
 				new BlockDecorative(TRITANIUM, "decorative.carbon_fiber_plate", 10, 1, 12, 0x1c1f20));
-		decorative_matter_tube = register(
-				new BlockDecorativeRotated(Material.GLASS, "decorative.matter_tube", 3, 1, 4, 0x5088a5));
 		decorative_beams = register(new BlockDecorativeRotated(TRITANIUM, "decorative.beams", 8, 1, 8, 0x1e2220));
 		decorative_floor_tiles = register(
 				new BlockDecorativeColored(Material.CLAY, "decorative.floor_tiles", 4, 0, 4, 0x958d7c));
@@ -220,11 +220,11 @@ public class MatterOverdriveBlocks {
 		decorative_engine_exhaust_plasma = register(
 				new BlockDecorative(Material.CACTUS, "decorative.engine_exhaust_plasma", 1, 1, 1, 0x387c9e));
 		decorative_engine_exhaust_plasma.setLightLevel(1);
-		microwave = register(new BlockMicrowave(Material.IRON, "microwave"));
-		industrialGlass = register(new BlockIndustrialGlass(Material.GLASS, "industrial_glass"));
+		decorative_matter_tube = register(
+				new BlockDecorativeRotated(Material.GLASS, "decorative.matter_tube", 3, 1, 4, 0x5088a5));
 
-		// Register test crates.
-		new_tritanium_crate_base = register(new BlockNewTritaniumCrate(TRITANIUM, "new_tritanium_crate", 0));
+//		Dev / Incomplete
+		androidSpawner = register(new BlockAndroidSpawner(TRITANIUM, "android_spawner"));
 
 		MOLog.info("Finished registering %d blocks", registeredCount);
 

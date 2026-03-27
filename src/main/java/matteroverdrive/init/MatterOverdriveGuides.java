@@ -72,7 +72,9 @@ public class MatterOverdriveGuides {
 				3, 3);
 		addEntry(generalCategory, new MOGuideEntryBlock(MatterOverdrive.BLOCKS.gravitational_anomaly).setGroup("power"),
 				4, 3);
-		addEntry(generalCategory, new MOGuideEntryBlock(MatterOverdrive.BLOCKS.pylon).setGroup("power"), 3, 4);
+		if (MatterOverdrive.CONFIG_HANDLER.pylonEnabled) {
+			addEntry(generalCategory, new MOGuideEntryBlock(MatterOverdrive.BLOCKS.pylon).setGroup("power"), 3, 4);
+		}
 		addEntry(generalCategory, new MOGuideEntryBlock(MatterOverdrive.BLOCKS.solar_panel).setGroup("power"), 4, 4);
 		addEntry(generalCategory,
 				new MOGuideEntry("batteries").setStackIcons(new ItemStack(MatterOverdrive.ITEMS.battery),
