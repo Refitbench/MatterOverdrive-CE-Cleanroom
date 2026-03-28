@@ -77,6 +77,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     public static final int BLOCK_DESTORY_DELAY = 6;
     public static final int MAX_BLOCKS_PER_HARVEST = 6;
     public static final int MAX_LIQUIDS_PER_HARVEST = 32;
+    public static final int ENTITY_GRAVITATION_INTERVAL = 2;
     public static final double STREHGTH_MULTIPLYER = 0.00001;
     public static final double G = 6.67384;
     public static final double G2 = G * 2;
@@ -90,6 +91,10 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     PriorityQueue<BlockPos> blocks;
     List<AnomalySuppressor> supressors;
     private float suppression;
+    private boolean derivedMassCacheDirty = true;
+    private double cachedRealMassUnsuppressed;
+    private double cachedRealMass;
+    private float cachedBaseBreakStrength;
 
     private BlockPos blockPos;
     public int tickCounter = 0;
@@ -122,13 +127,16 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
         }
         else
         {
-            float tmpSuppression = calculateSuppression();
-            if (tmpSuppression != suppression)
-            {
-                suppression = tmpSuppression;
+            if (!supressors.isEmpty()) {
+                float tmpSuppression = calculateSuppression();
+                setSuppression(tmpSuppression);
             }
 
-            manageEntityGravitation(world, 0);
+            int gravitationInterval = Math.max(1, ENTITY_GRAVITATION_INTERVAL);
+            long phase = world.getTotalWorldTime() + (getPos().toLong() & 1L);
+            if (phase % gravitationInterval == 0) {
+                manageEntityGravitation(world, gravitationInterval);
+            }
             tickCounter++;
             if (tickCounter == 20) {
                 manageBlockDestory(world);
@@ -186,6 +194,8 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 			return;
 		}
 
+		float tickScale = Math.max(1.0f, ticks);
+
 		double range = getMaxRange() + 1;
 		AxisAlignedBB bb = new AxisAlignedBB(getPos().getX() - range, getPos().getY() - range, getPos().getZ() - range,
 				getPos().getX() + range, getPos().getY() + range, getPos().getZ() + range);
@@ -202,7 +212,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 			// pos.y += entity.getEyeHeight();
 			double distanceSq = entityPos.squareDistanceTo(blockPos);
-			double acceleration = getAcceleration(distanceSq);
+			double acceleration = getAcceleration(distanceSq) * tickScale;
 			double eventHorizon = getEventHorizon();
 			Vec3d dir = blockPos.subtract(entityPos).normalize();
 			dir = new Vec3d(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
@@ -461,8 +471,8 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 		ItemStack itemStack = entityItem.getItem();
 		if (!itemStack.isEmpty()) {
 			try {
-				mass = Math.addExact(mass,
-						(long) MatterHelper.getMatterAmountFromItem(itemStack) * (long) itemStack.getCount());
+					setMass(Math.addExact(mass,
+						(long) MatterHelper.getMatterAmountFromItem(itemStack) * (long) itemStack.getCount()));
 				markDirty();
 			} catch (ArithmeticException e) {
 				return false;
@@ -492,8 +502,8 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 				fallingBlock.getBlock().getBlock().damageDropped(fallingBlock.getBlock()));
 		if (!itemStack.isEmpty()) {
 			try {
-				mass = Math.addExact(mass,
-						(long) MatterHelper.getMatterAmountFromItem(itemStack) * (long) itemStack.getCount());
+					setMass(Math.addExact(mass,
+						(long) MatterHelper.getMatterAmountFromItem(itemStack) * (long) itemStack.getCount()));
 				markDirty();
 			} catch (ArithmeticException e) {
 				return false;
@@ -508,7 +518,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 	private boolean consumeLivingEntity(EntityLivingBase entity, float strength) {
 		try {
-			mass = Math.addExact(mass, (long) Math.min(entity.getHealth(), strength));
+			setMass(Math.addExact(mass, (long) Math.min(entity.getHealth(), strength)));
 			markDirty();
 		} catch (ArithmeticException e) {
 			return false;
@@ -577,7 +587,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
                 }
 
                 try {
-                    mass = Math.addExact(mass,matter);
+                    setMass(Math.addExact(mass,matter));
                 }
                 catch (ArithmeticException e)
                 {
@@ -687,11 +697,12 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
         while (iterator.hasNext())
         {
             AnomalySuppressor s = iterator.next();
+            s.tick();
             if (!s.isValid())
             {
                 iterator.remove();
+                continue;
             }
-                s.tick();
             suppression *= s.getAmount();
         }
         return suppression;
@@ -723,10 +734,10 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     {
         if (categories.contains(MachineNBTCategory.DATA)) {
             this.supressors.clear();
-            mass = nbt.getLong("Mass");
-            suppression = nbt.getFloat("Suppression");
+            setMass(nbt.getLong("Mass"));
+            setSuppression(nbt.getFloat("Suppression"));
             NBTTagList suppressors = nbt.getTagList("suppressors", Constants.NBT.TAG_COMPOUND);
-            for (int i = 0;i < supressors.size();i++)
+            for (int i = 0;i < suppressors.tagCount();i++)
             {
                 NBTTagCompound suppressorTag = suppressors.getCompoundTagAt(i);
                 AnomalySuppressor s = new AnomalySuppressor(suppressorTag);
@@ -769,17 +780,20 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     }
 
     public double getRealMass() {
-        return getRealMassUnsuppressed() * suppression;
+        updateDerivedMassCache();
+        return cachedRealMass;
     }
 
     public double getRealMassUnsuppressed()
     {
-        return Math.log1p(Math.max(mass,0) * STREHGTH_MULTIPLYER);
+        updateDerivedMassCache();
+        return cachedRealMassUnsuppressed;
     }
 
     public float getBreakStrength(float distance,float maxRange)
     {
-        return ((float)getRealMass() * 4 * suppression) * getDistanceFalloff(distance,maxRange);
+        updateDerivedMassCache();
+        return cachedBaseBreakStrength * getDistanceFalloff(distance,maxRange);
     }
 
     public float getDistanceFalloff(float distance,float maxRange)
@@ -789,7 +803,39 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
     public float getBreakStrength()
     {
-        return (float)getRealMass() * 4 * suppression;
+        updateDerivedMassCache();
+        return cachedBaseBreakStrength;
+    }
+
+    private void setMass(long newMass)
+    {
+        if (mass != newMass)
+        {
+            mass = newMass;
+            derivedMassCacheDirty = true;
+        }
+    }
+
+    private void setSuppression(float newSuppression)
+    {
+        if (Float.compare(suppression, newSuppression) != 0)
+        {
+            suppression = newSuppression;
+            derivedMassCacheDirty = true;
+            markDirty();
+        }
+    }
+
+    private void updateDerivedMassCache()
+    {
+        if (!derivedMassCacheDirty)
+        {
+            return;
+        }
+        cachedRealMassUnsuppressed = Math.log1p(Math.max(mass, 0) * STREHGTH_MULTIPLYER);
+        cachedRealMass = cachedRealMassUnsuppressed * suppression;
+        cachedBaseBreakStrength = (float) cachedRealMass * 4 * suppression;
+        derivedMassCacheDirty = false;
     }
     //endregion
 
