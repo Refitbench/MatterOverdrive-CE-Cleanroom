@@ -9,6 +9,7 @@ import matteroverdrive.init.MatterOverdriveCapabilities;
 import matteroverdrive.machines.decomposer.TileEntityMachineDecomposer;
 import matteroverdrive.util.MatterHelper;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.tileentity.TileEntity;
 
 public class GuiDecomposer extends MOGuiMachine<TileEntityMachineDecomposer> {
 	MOElementEnergy energyElement;
@@ -46,9 +47,20 @@ public class GuiDecomposer extends MOGuiMachine<TileEntityMachineDecomposer> {
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float p_146976_1_, int p_146976_2_, int p_146976_3_) {
+		rebindMachineReferences();
 		super.drawGuiContainerBackgroundLayer(p_146976_1_, p_146976_2_, p_146976_3_);
 		decompose_progress.setQuantity(Math.round((((ContainerMachine<?>) getContainer()).getProgress() * 24)));
 		manageRequirementsTooltips();
+	}
+
+	private void rebindMachineReferences() {
+		TileEntity tileEntity = mc.world.getTileEntity(machine.getPos());
+		if (tileEntity instanceof TileEntityMachineDecomposer && tileEntity != machine) {
+			machine = (TileEntityMachineDecomposer) tileEntity;
+		}
+
+		matterElement.setStorage(machine.getCapability(MatterOverdriveCapabilities.MATTER_HANDLER, null));
+		energyElement.setStorage(machine.getEnergyStorage());
 	}
 
 	void manageRequirementsTooltips() {

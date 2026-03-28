@@ -98,4 +98,8 @@ public class MOElementEnergy extends MOElementBase {
 	public void setEnergyRequiredPerTick(int energyRequired) {
 		this.energyRequiredPerTick = energyRequired;
 	}
+
+	public void setStorage(IEnergyStorage storage) {
+		this.storage = storage;
+	}
 }

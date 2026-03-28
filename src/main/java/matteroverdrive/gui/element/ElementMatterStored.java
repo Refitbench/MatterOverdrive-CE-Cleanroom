@@ -105,4 +105,8 @@ public class ElementMatterStored extends MOElementBase {
 	public void setDrainPerTick(double amount) {
 		this.drainPerTick = amount;
 	}
+
+	public void setStorage(IMatterHandler storage) {
+		this.storage = storage;
+	}
 }

@@ -63,20 +63,23 @@ public class BlockDecomposer extends MOMatterEnergyStorageBlock<TileEntityMachin
 
 	public static void setState(boolean active, World worldIn, BlockPos pos) {
 		IBlockState iblockstate = worldIn.getBlockState(pos);
+		IBlockState desiredState;
+		if (active) {
+			desiredState = MatterOverdrive.BLOCKS.decomposer_running.getDefaultState()
+					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION));
+		} else {
+			desiredState = MatterOverdrive.BLOCKS.decomposer.getDefaultState()
+					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION));
+		}
+
+		if (iblockstate.getBlock() == desiredState.getBlock()
+				&& iblockstate.getValue(PROPERTY_DIRECTION) == desiredState.getValue(PROPERTY_DIRECTION)) {
+			return;
+		}
+
 		TileEntity tileentity = worldIn.getTileEntity(pos);
 		keepInventory = true;
-
-		if (active) {
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.decomposer_running.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.decomposer_running.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-		} else {
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.decomposer.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.decomposer.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-		}
+		worldIn.setBlockState(pos, desiredState, 3);
 
 		keepInventory = false;
 
