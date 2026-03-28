@@ -58,7 +58,7 @@ public class MatterNetwork extends AbstractGridNetwork<IMatterNetworkConnection>
 
 	@Override
 	public boolean canMerge(IGridNetwork network) {
-		return true;
+		return network instanceof MatterNetwork;
 	}
 
 	public List<IMatterNetworkClient> getClients() {

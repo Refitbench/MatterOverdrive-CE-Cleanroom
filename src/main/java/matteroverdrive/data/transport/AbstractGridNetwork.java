@@ -30,6 +30,12 @@ public abstract class AbstractGridNetwork<T extends IGridNode> implements IGridN
 
 	@Override
 	public void onNodeDestroy(final IBlockState blockState, final T node) {
+		if (!nodeTypes.isInstance(node)) {
+			MOLog.warn("Ignoring node destroy for incompatible node type %s in network %s",
+					node != null ? node.getClass().getName() : "null", getClass().getName());
+			return;
+		}
+
 		removeNode(node);
 
 		if (!nodes.isEmpty()) {
@@ -72,6 +78,12 @@ public abstract class AbstractGridNetwork<T extends IGridNode> implements IGridN
 
 	@Override
 	public void addNode(T node) {
+		if (!nodeTypes.isInstance(node)) {
+			MOLog.warn("Refusing to add incompatible node type %s to network %s",
+					node != null ? node.getClass().getName() : "null", getClass().getName());
+			return;
+		}
+
 		if (node.getNetwork() != null) {
 			if (node.getNetwork() != this) {
 				if (node.getNetwork().canMerge(this)) {
@@ -103,6 +115,12 @@ public abstract class AbstractGridNetwork<T extends IGridNode> implements IGridN
 	// node
 	@Override
 	public void removeNode(T node) {
+		if (!nodeTypes.isInstance(node)) {
+			MOLog.warn("Refusing to remove incompatible node type %s from network %s",
+					node != null ? node.getClass().getName() : "null", getClass().getName());
+			return;
+		}
+
 		if (node.getNetwork() == null || node.getNetwork() == this) {
 			node.setNetwork(null);
 			nodes.remove(node);

@@ -11,7 +11,7 @@ public class FluidPipeNetwork extends AbstractGridNetwork<IFluidPipe> {
 
 	@Override
 	public boolean canMerge(IGridNetwork network) {
-		return true;
+		return network instanceof FluidPipeNetwork;
 	}
 
 	@Override
