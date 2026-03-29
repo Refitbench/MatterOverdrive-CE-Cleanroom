@@ -166,7 +166,6 @@ public class MatterOverdrive {
 		MinecraftForge.EVENT_BUS.register(MATTER_NETWORK_HANDLER);
 		MinecraftForge.EVENT_BUS.register(FLUID_NETWORK_HANDLER);
 
-		AnomalyChunkLoader.init(INSTANCE);
 		PROXY.preInit(event);
 
 		MatterOverdriveCompat.preInit(event);

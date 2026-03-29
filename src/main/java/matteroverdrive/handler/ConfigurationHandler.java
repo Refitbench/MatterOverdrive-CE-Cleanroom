@@ -95,11 +95,10 @@ public class ConfigurationHandler {
 	public static final String KEY_GRAVITATIONAL_ANOMALY_SPAWN_LEVEL = "gravitational anomaly spawn y level";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_VANILLA_FLUIDS = "gravitational anomaly vanilla fluids";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_FORGE_FLUIDS = "gravitational anomaly forge fluids";
-	public static final String KEY_GRAVITATIONAL_ANOMALY_BLOCK_SCAN_SLICES = "block scan slices";
-	public static final String KEY_GRAVITATIONAL_ANOMALY_SCAN_INTERVAL_TICKS = "block scan interval ticks";
-	public static final String KEY_GRAVITATIONAL_ANOMALY_ENTITY_GRAV_INTERVAL = "entity gravitation interval";
-	public static final String KEY_GRAVITATIONAL_ANOMALY_SCAN_Y_MODE = "scan y mode";
-	public static final String KEY_GRAVITATIONAL_ANOMALY_FORCE_LOAD_ENABLED = "force load chunks";
+	public static final String KEY_GRAVITATIONAL_ANOMALY_SCAN_BATCH_SIZE = "scan batch size";
+	public static final String KEY_GRAVITATIONAL_ANOMALY_BLOCKS_PER_BATCH = "blocks per batch";
+	public static final String KEY_GRAVITATIONAL_ANOMALY_BATCH_TICK_RATE = "batch tick rate";
+	public static final String KEY_GRAVITATIONAL_ANOMALY_IDLE_SCAN_TICKS = "idle scan ticks";
 	public static final String KEY_HOUSE = "generate house";
 	public static final String KEY_ANDROID_HOUSE_SPAWN_CHANCE = "android house spawn chance";
 	public static final String KEY_SAND_PIT_SPAWN_CHANCE = "sand pit spawn chance";

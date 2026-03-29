@@ -3,13 +3,14 @@ package matteroverdrive.tile;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -17,7 +18,6 @@ import javax.annotation.Nullable;
 import org.apache.logging.log4j.Level;
 import org.lwjgl.util.vector.Vector3f;
 
-import matteroverdrive.MatterOverdrive;
 import matteroverdrive.api.IScannable;
 import matteroverdrive.api.events.anomaly.MOEventGravitationalAnomalyConsume;
 import matteroverdrive.api.gravity.AnomalySuppressor;
@@ -32,7 +32,6 @@ import matteroverdrive.items.SpacetimeEqualizer;
 import matteroverdrive.machines.MachineNBTCategory;
 import matteroverdrive.util.MOLog;
 import matteroverdrive.util.MatterHelper;
-import matteroverdrive.util.TimeTracker;
 import matteroverdrive.util.Vector3;
 import matteroverdrive.util.math.MOMathHelper;
 import net.minecraft.block.Block;
@@ -56,12 +55,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.IFluidBlock;
@@ -79,44 +75,40 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     public static boolean GRAVITATION = true;
     public static boolean SOUND = true;
     public static final float MAX_VOLUME = 0.5f;
-    public static final int BLOCK_DESTORY_DELAY = 6;
-    public static final int MAX_BLOCKS_PER_HARVEST = 6;
-    public static final int MAX_LIQUIDS_PER_HARVEST = 32;
-    public static int ENTITY_GRAVITATION_INTERVAL = 2;
-    public static int BLOCK_SCAN_SLICES = 1;
-    public static int BLOCK_SCAN_INTERVAL_TICKS = 20;
-    public static int SCAN_Y_MODE = 0;
-    public static boolean FORCE_LOAD_ENABLED = true;
+    public static int SCAN_BATCH_SIZE = 256;
+    public static int BLOCKS_PER_BATCH = 1;
+    public static int BATCH_TICK_RATE = 2;
+    public static int IDLE_SCAN_TICKS = 40;
     public static final double STREHGTH_MULTIPLYER = 0.00001;
     public static final double G = 6.67384;
     public static final double G2 = G * 2;
     public static final double C = 2.99792458;
     public static final double CC = C * C;
 
+    private static final Map<Integer, List<BlockPos>> SPHERE_OFFSET_CACHE = new HashMap<>();
+
     @SideOnly(Side.CLIENT)
     private GravitationalAnomalySound sound;
-    private TimeTracker blockDestoryTimer;
     private long mass;
-    PriorityQueue<BlockPos> blocks;
     List<AnomalySuppressor> supressors;
-    private float suppression;
+    private float suppression = 1.0f;
     private boolean derivedMassCacheDirty = true;
     private double cachedRealMassUnsuppressed;
     private double cachedRealMass;
     private float cachedBaseBreakStrength;
 
     private BlockPos blockPos;
-    public int tickCounter = 0;
-    public int index = 0;
-    private int blockScanSlice = 0;
-    private ForgeChunkManager.Ticket chunkTicket;
-    private Set<ChunkPos> forcedChunks = new HashSet<>();
-    private long nextChunkUpdateTick = 0;
+    private int scanCursor = 0;
+    private int scanRange = -1;
+    private int scanIdleTimer = 0;
+    private int breakBatchTimer = 0;
+    private List<BlockPos> currentOffsets = Collections.emptyList();
+    private List<ScanEntry> scanBuffer = new ArrayList<>();
+    private Queue<ScanEntry> breakQueue = new ArrayDeque<>();
 
     //region Constructors
     public TileEntityGravitationalAnomaly()
     {
-        blockDestoryTimer = new TimeTracker();
         this.mass = 2048 + Math.round(Math.random() * 8192);
         supressors = new ArrayList<>();
     }
@@ -145,24 +137,11 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
                 setSuppression(tmpSuppression);
             }
 
-            if (FORCE_LOAD_ENABLED) {
-                long now = world.getTotalWorldTime();
-                if (now >= nextChunkUpdateTick) {
-                    updateForcedChunks(world);
-                    nextChunkUpdateTick = now + 100;
-                }
-            }
-
-            int gravitationInterval = Math.max(1, ENTITY_GRAVITATION_INTERVAL);
-            long phase = world.getTotalWorldTime() + (getPos().toLong() & 1L);
-            if (phase % gravitationInterval == 0) {
-                manageEntityGravitation(world, gravitationInterval);
-            }
-            tickCounter++;
-            if (tickCounter >= BLOCK_SCAN_INTERVAL_TICKS) {
-                manageBlockDestory(world);
-                index++;
-                tickCounter = 0;
+            manageEntityGravitation(world);
+            scanBlockLayer(world);
+            if (++breakBatchTimer >= BATCH_TICK_RATE) {
+                breakBatchTimer = 0;
+                breakNextQueuedBlocks(world);
             }
         }
     }
@@ -210,12 +189,10 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 	}
 
 
-	public void manageEntityGravitation(World world, float ticks) {
+	public void manageEntityGravitation(World world) {
 		if (!GRAVITATION) {
 			return;
 		}
-
-		float tickScale = Math.max(1.0f, ticks);
 
 		double range = getMaxRange() + 1;
 		AxisAlignedBB bb = new AxisAlignedBB(getPos().getX() - range, getPos().getY() - range, getPos().getZ() - range,
@@ -233,7 +210,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 			// pos.y += entity.getEyeHeight();
 			double distanceSq = entityPos.squareDistanceTo(blockPos);
-			double acceleration = getAcceleration(distanceSq) * tickScale;
+		double acceleration = getAcceleration(distanceSq);
 			double eventHorizon = getEventHorizon();
 			Vec3d dir = blockPos.subtract(entityPos).normalize();
 			dir = new Vec3d(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
@@ -351,8 +328,6 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 		super.onChunkUnload();
 		if (world.isRemote) {
 			stopSounds();
-		} else {
-			releaseTicket();
 		}
 	}
 
@@ -382,8 +357,6 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 		super.invalidate();
 		if (world.isRemote) {
 			stopSounds();
-		} else {
-			releaseTicket();
 		}
 	}
     //endregion
@@ -403,92 +376,115 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 	}
     //endregion
 
-	public void manageBlockDestory(World world) {
+	private static List<BlockPos> buildSphereOffsets(int range) {
+		return SPHERE_OFFSET_CACHE.computeIfAbsent(range, r -> {
+			List<BlockPos> offsets = new ArrayList<>();
+			int rangeSq = r * r;
+			for (int x = -r; x <= r; x++) {
+				int xx = x * x;
+				for (int z = -r; z <= r; z++) {
+					int xxzz = xx + z * z;
+					if (xxzz > rangeSq) continue;
+					for (int y = -r; y <= r; y++) {
+						if (xxzz + y * y <= rangeSq) {
+							offsets.add(new BlockPos(x, y, z));
+						}
+					}
+				}
+			}
+			offsets.sort((a, b) -> {
+				int da = a.getX() * a.getX() + a.getY() * a.getY() + a.getZ() * a.getZ();
+				int db = b.getX() * b.getX() + b.getY() * b.getY() + b.getZ() * b.getZ();
+				return Integer.compare(da, db);
+			});
+			return Collections.unmodifiableList(offsets);
+		});
+	}
+
+	private void scanBlockLayer(World world) {
 		if (!BLOCK_DESTRUCTION) {
 			return;
 		}
 
-		int solidCount = 0;
-		int liquidCount = 0;
 		int range = (int) Math.floor(getBlockBreakRange());
-		double distance;
-		double eventHorizon = getEventHorizon();
-		float hardness;
-		IBlockState blockState;
-		int ax = getPos().getX(), ay = getPos().getY(), az = getPos().getZ();
-		double rangeSq = (double) range * range;
+		if (range != scanRange) {
+			scanCursor = 0;
+			scanRange = range;
+			scanIdleTimer = 0;
+			currentOffsets = buildSphereOffsets(range);
+		}
+		if (range <= 0) return;
 
-		blocks = new PriorityQueue<>(1, new BlockComparitor(getPos()));
-
-		if (blockDestoryTimer.hasDelayPassed(world, BLOCK_DESTORY_DELAY)) {
-			int yMin, yMax;
-			if (SCAN_Y_MODE == 2) {
-				yMin = -Math.min(range, 8);
-				yMax =  Math.min(range, 8);
-			} else if (SCAN_Y_MODE == 1) {
-				int half = range / 2;
-				yMin = -half;
-				yMax =  half;
-			} else {
-				yMin = -range;
-				yMax =  range;
-			}
-			int slices = Math.max(1, BLOCK_SCAN_SLICES);
-			BlockPos.MutableBlockPos mutablePos = new BlockPos.MutableBlockPos();
-			for (int x = -range; x < range; x++) {
-				// Slice gate: only process columns belonging to the current slice
-				if (((x + range) % slices) != blockScanSlice) continue;
-				for (int z = -range; z < range; z++) {
-					// 2D pre-cull: skip x,z columns that can never be in range
-					double dx2z2 = (double) x * x + (double) z * z;
-					if (dx2z2 > rangeSq) continue;
-					// Skip entire column if chunk is not loaded
-					if (!world.isBlockLoaded(mutablePos.setPos(ax + x, ay, az + z))) continue;
-					for (int y = yMin; y < yMax; y++) {
-						double distanceSq3d = dx2z2 + (double) y * y;
-						if (distanceSq3d > rangeSq) continue;
-						mutablePos.setPos(ax + x, ay + y, az + z);
-						blockState = world.getBlockState(mutablePos);
-						Block scanBlock = blockState.getBlock();
-						if (scanBlock == Blocks.AIR) continue;
-						distance = Math.sqrt(distanceSq3d);
-						hardness = blockState.getBlockHardness(world, mutablePos);
-						if (scanBlock instanceof IFluidBlock || scanBlock instanceof BlockLiquid) {
-							hardness = 1;
-						}
-						float strength = getBreakStrength((float) distance, range);
-						if (hardness >= 0 && (distance < eventHorizon || hardness < strength)) {
-							blocks.add(mutablePos.toImmutable());
-						}
-					}
-				}
-			}
-			blockScanSlice = (blockScanSlice + 1) % slices;
+		if (scanIdleTimer > 0) {
+			scanIdleTimer--;
+			return;
 		}
 
-		for (BlockPos position : blocks) {
-			blockState = world.getBlockState(position);
+		List<BlockPos> offsets = currentOffsets;
+		int size = offsets.size();
+		if (size == 0) return;
 
-			if (!cleanFlowingLiquids(blockState, position)) {
-				if (liquidCount < MAX_LIQUIDS_PER_HARVEST) {
-					if (cleanLiquids(blockState, position)) {
-						liquidCount++;
-						continue;
-					}
-				}
-				if (solidCount < MAX_BLOCKS_PER_HARVEST) {
-					try {
-						distance = Math.sqrt(position.distanceSq(getPos()));
-						float strength = getBreakStrength((float) distance, range);
-						if (breakBlock(world, position, strength, eventHorizon, range)) {
-							solidCount++;
-						}
-					} catch (Exception e) {
-						MOLog.log(Level.ERROR, e, "There was a problem while trying to brake block %s",
-								blockState.getBlock());
-					}
-				}
+		double eventHorizon = getEventHorizon();
+		int ax = getPos().getX(), ay = getPos().getY(), az = getPos().getZ();
+		int end = Math.min(scanCursor + SCAN_BATCH_SIZE, size);
+
+		for (int i = scanCursor; i < end; i++) {
+			BlockPos offset = offsets.get(i);
+			BlockPos scanPos = new BlockPos(ax + offset.getX(), ay + offset.getY(), az + offset.getZ());
+			IBlockState blockState = world.getBlockState(scanPos);
+			Block block = blockState.getBlock();
+			if (block == Blocks.AIR) continue;
+
+			int ox = offset.getX(), oy = offset.getY(), oz = offset.getZ();
+			double distance = Math.sqrt(ox * ox + oy * oy + oz * oz);
+			float hardness = blockState.getBlockHardness(world, scanPos);
+			if (block instanceof IFluidBlock || block instanceof BlockLiquid) {
+				hardness = 1;
 			}
+			float strength = getBreakStrength((float) distance, range);
+			if (hardness >= 0 && (distance < eventHorizon || hardness < strength)) {
+				scanBuffer.add(new ScanEntry(scanPos, blockState));
+			}
+		}
+
+		scanCursor = end;
+		if (scanCursor >= size) {
+			if (scanBuffer.isEmpty()) {
+				scanIdleTimer = IDLE_SCAN_TICKS;
+			} else {
+				breakQueue = new ArrayDeque<>(scanBuffer);
+			}
+			scanBuffer.clear();
+			scanCursor = 0;
+		}
+	}
+
+	private void breakNextQueuedBlocks(World world) {
+		if (breakQueue.isEmpty()) return;
+
+		int range = (int) Math.floor(getBlockBreakRange());
+		double eventHorizon = getEventHorizon();
+		int broken = 0;
+
+		while (broken < BLOCKS_PER_BATCH && !breakQueue.isEmpty()) {
+			ScanEntry entry = breakQueue.poll();
+
+			IBlockState current = world.getBlockState(entry.pos);
+			if (current.getBlock() == Blocks.AIR) continue;
+			if (current.getBlock() != entry.scannedState.getBlock()) continue;
+
+			if (cleanFlowingLiquids(current, entry.pos)) { broken++; continue; }
+			if (cleanLiquids(current, entry.pos)) { broken++; continue; }
+
+			try {
+				double distance = Math.sqrt(entry.pos.distanceSq(getPos()));
+				float strength = getBreakStrength((float) distance, range);
+				breakBlock(world, entry.pos, strength, eventHorizon, range);
+			} catch (Exception e) {
+				MOLog.log(Level.ERROR, e, "There was a problem while trying to brake block %s",
+						current.getBlock());
+			}
+			broken++;
 		}
 	}
 
@@ -871,6 +867,11 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
         {
             suppression = newSuppression;
             derivedMassCacheDirty = true;
+            scanBuffer.clear();
+            breakQueue.clear();
+            scanCursor = 0;
+            scanRange = -1;
+            scanIdleTimer = 0;
             markDirty();
         }
     }
@@ -887,102 +888,20 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
         derivedMassCacheDirty = false;
     }
 
-    @Override
-    public void onLoad() {
-        if (!world.isRemote && FORCE_LOAD_ENABLED) {
-            acquireTicket(world);
-            updateForcedChunks(world);
-        }
-    }
-
-    public void onTicketRestored(ForgeChunkManager.Ticket ticket, World world) {
-        this.chunkTicket = ticket;
-        ticket.getModData().setLong("AnomalyPos", getPos().toLong());
-        updateForcedChunks(world);
-    }
-
-    private void acquireTicket(World world) {
-        if (chunkTicket != null) return;
-        chunkTicket = ForgeChunkManager.requestTicket(MatterOverdrive.INSTANCE, world, ForgeChunkManager.Type.NORMAL);
-        if (chunkTicket != null) {
-            chunkTicket.getModData().setLong("AnomalyPos", getPos().toLong());
-        }
-    }
-
-    private void releaseTicket() {
-        if (chunkTicket != null) {
-            ForgeChunkManager.releaseTicket(chunkTicket);
-            chunkTicket = null;
-            forcedChunks = new HashSet<>();
-        }
-    }
-
-    private void updateForcedChunks(World world) {
-        if (chunkTicket == null) return;
-        int range = (int) Math.floor(getBlockBreakRange());
-        int ax = getPos().getX();
-        int az = getPos().getZ();
-        int minCx = (ax - range) >> 4;
-        int maxCx = (ax + range) >> 4;
-        int minCz = (az - range) >> 4;
-        int maxCz = (az + range) >> 4;
-        int anomalyCx = ax >> 4;
-        int anomalyCz = az >> 4;
-        double rangeSq = (double) range * range;
-        Set<ChunkPos> newChunks = new HashSet<>();
-        for (int cx = minCx; cx <= maxCx; cx++) {
-            for (int cz = minCz; cz <= maxCz; cz++) {
-                if (cx == anomalyCx && cz == anomalyCz) continue;
-                int nearX = Math.max(cx << 4, Math.min(ax, (cx << 4) + 15));
-                int nearZ = Math.max(cz << 4, Math.min(az, (cz << 4) + 15));
-                double dx = nearX - ax;
-                double dz = nearZ - az;
-                if (dx * dx + dz * dz <= rangeSq) {
-                    newChunks.add(new ChunkPos(cx, cz));
-                }
-            }
-        }
-        for (ChunkPos cp : newChunks) {
-            if (!forcedChunks.contains(cp)) {
-                ForgeChunkManager.forceChunk(chunkTicket, cp);
-            }
-        }
-        for (ChunkPos cp : forcedChunks) {
-            if (!newChunks.contains(cp)) {
-                ForgeChunkManager.unforceChunk(chunkTicket, cp);
-            }
-        }
-        forcedChunks = newChunks;
-    }
     //endregion
 
     //region Sub Classes
-    public static class PositionWrapper
+    private static class ScanEntry
     {
-        int x,y,z;
+        final BlockPos pos;
+        final IBlockState scannedState;
 
-        public PositionWrapper(int x,int y,int z)
+        ScanEntry(BlockPos pos, IBlockState scannedState)
         {
-            this.x = x;
-            this.y = y;
-            this.z = z;
+            this.pos = pos;
+            this.scannedState = scannedState;
         }
     }
-
-	public static class BlockComparitor implements Comparator<BlockPos> {
-		private final BlockPos pos;
-
-		public BlockComparitor(BlockPos pos) {
-			this.pos = pos;
-		}
-
-		@Override
-		public int compare(BlockPos o1, BlockPos o2) {
-			return Double.compare(o1.distanceSq(pos.getX(), pos.getY(), pos.getZ()),
-					o2.distanceSq(pos.getX(), pos.getY(), pos.getZ()));
-		}
-	}
-
     //endregion
 
 	@Override
