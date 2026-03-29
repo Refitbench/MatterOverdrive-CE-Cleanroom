@@ -35,8 +35,8 @@ public class ConnectionPathfind<T extends IGridNode> {
 			if (startNode.canConnectFromSide(startNode.getNodeWorld().getBlockState(startNode.getNodePos()), d)) {
 				BlockPos neighborPos = startNode.getNodePos().offset(d);
 				TileEntity neighborTile = startNode.getNodeWorld().getTileEntity(neighborPos);
-				if (neighborTile instanceof IGridNode && neighborTile != target) {
-					if (isConnectedToSourceRecursive((T) neighborTile)) {
+				if (nodeTypes.isInstance(neighborTile) && neighborTile != target) {
+					if (isConnectedToSourceRecursive(nodeTypes.cast(neighborTile))) {
 						return true;
 					}
 				}

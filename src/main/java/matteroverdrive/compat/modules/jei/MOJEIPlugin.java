@@ -15,7 +15,6 @@ import mezz.jei.api.ingredients.IModIngredientRegistration;
 import mezz.jei.api.ingredients.VanillaTypes;
 import mezz.jei.api.recipe.IRecipeCategoryRegistration;
 import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -57,27 +56,27 @@ public class MOJEIPlugin implements IModPlugin {
 	public void registerCollapsibleGroups(ICollapsibleGroupRegistry registry) {
 		registry.addGroup(
 				"matteroverdrive:colored_floor_tile",
-				I18n.format("tile.decorative.floor_tile.name"),
+				"tile.decorative.floor_tile.name",
 				VanillaTypes.ITEM,
 				stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_floor_tile);
 		registry.addGroup(
 				"matteroverdrive:colored_floor_tiles",
-				I18n.format("tile.decorative.floor_tiles.name"),
+				"tile.decorative.floor_tiles.name",
 				VanillaTypes.ITEM,
 				stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_floor_tiles);
 		registry.addGroup(
 				"matteroverdrive:colored_tritanium_plate",
-				I18n.format("tile.decorative.tritanium_plate_colored.name"),
+				"tile.decorative.tritanium_plate_colored.name",
 				VanillaTypes.ITEM,
 				stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_tritanium_plate_colored);
 		registry.addGroup(
 				"matteroverdrive:color_modules",
-				I18n.format("item.matteroverdrive.weapon_module_color.name"),
+				"item.matteroverdrive.weapon_module_color.name",
 				VanillaTypes.ITEM,
 				stack -> stack.getItem() == MatterOverdrive.ITEMS.weapon_module_color);
 		registry.addGroup(
 				"matteroverdrive:contracts",
-				I18n.format("item.matteroverdrive.contract.name"),
+				"item.matteroverdrive.contract.name",
 				VanillaTypes.ITEM,
 				stack -> stack.getItem() == MatterOverdrive.ITEMS.contract);
 	}

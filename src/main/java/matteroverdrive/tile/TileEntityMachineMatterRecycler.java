@@ -30,6 +30,7 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 	public int OUTPUT_SLOT_ID;
 	public int INPUT_SLOT_ID;
 	public int recycleTime;
+	private boolean lastRecyclingState = false;
 
 	public TileEntityMachineMatterRecycler() {
 		super(4);
@@ -80,24 +81,29 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 
 	public void manageRecycle() {
 		if (!world.isRemote) {
-			if (this.isRecycling()) {
+			boolean recycling = isRecycling();
+
+			if (recycling) {
 				if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
 					this.recycleTime++;
 					getEnergyStorage().extractEnergy(getEnergyDrainPerTick(), false);
+					markDirty();
 
 					if (this.recycleTime >= getSpeed()) {
 						this.recycleTime = 0;
 						this.recycleItem();
+						markDirty();
 					}
 				}
 			}
 
-			BlockMatterRecycler.setState(isRecycling(), getWorld(), this.getPos());
-
-			this.markDirty();
+			if (recycling != lastRecyclingState) {
+				BlockMatterRecycler.setState(recycling, getWorld(), this.getPos());
+				lastRecyclingState = recycling;
+			}
 		}
 
-		if (!this.isRecycling()) {
+		if (!isRecycling()) {
 			this.recycleTime = 0;
 		}
 	}

@@ -2,9 +2,11 @@
 package matteroverdrive.machines.pattern_monitor;
 
 import matteroverdrive.api.matter.IMatterDatabase;
+import matteroverdrive.api.matter.IMatterPatternStorage;
 import matteroverdrive.container.matter_network.IMatterDatabaseWatcher;
 import matteroverdrive.data.matter_network.IMatterNetworkEvent;
 import matteroverdrive.data.matter_network.MatterDatabaseEvent;
+import net.minecraft.item.ItemStack;
 import matteroverdrive.matter_network.components.MatterNetworkComponentClient;
 
 public class ComponentMatterNetworkPatternMonitor
@@ -31,11 +33,13 @@ public class ComponentMatterNetworkPatternMonitor
 	private void onRemovedFromNetwork(IMatterNetworkEvent.RemovedFromNetwork event) {
 		rootClient.getWatchers().stream().filter(watcher -> watcher instanceof IMatterDatabaseWatcher)
 				.forEach(watcher -> ((IMatterDatabaseWatcher) watcher).onDisconnectFromNetwork(rootClient));
+		refreshMonitorCount();
 	}
 
 	private void onAddedToNetwork(IMatterNetworkEvent.AddedToNetwork event) {
 		rootClient.getWatchers().stream().filter(watcher -> watcher instanceof IMatterDatabaseWatcher)
 				.forEach(watcher -> ((IMatterDatabaseWatcher) watcher).onConnectToNetwork(rootClient));
+		refreshMonitorCount();
 	}
 
 	private void onClientAdded(IMatterNetworkEvent.ClientAdded event) {
@@ -43,6 +47,7 @@ public class ComponentMatterNetworkPatternMonitor
 			MatterDatabaseEvent databaseEvent = new MatterDatabaseEvent.Added((IMatterDatabase) event.client);
 			rootClient.getWatchers().stream().filter(watcher -> watcher instanceof IMatterDatabaseWatcher)
 					.forEach(watcher -> ((IMatterDatabaseWatcher) watcher).onDatabaseEvent(databaseEvent));
+			refreshMonitorCount();
 		}
 	}
 
@@ -51,11 +56,41 @@ public class ComponentMatterNetworkPatternMonitor
 			MatterDatabaseEvent databaseEvent = new MatterDatabaseEvent.Removed((IMatterDatabase) event.client);
 			rootClient.getWatchers().stream().filter(watcher -> watcher instanceof IMatterDatabaseWatcher)
 					.forEach(watcher -> ((IMatterDatabaseWatcher) watcher).onDatabaseEvent(databaseEvent));
+			refreshMonitorCount();
 		}
 	}
 
 	private void onPatternChange(MatterDatabaseEvent event) {
 		rootClient.getWatchers().stream().filter(watcher -> watcher instanceof IMatterDatabaseWatcher)
 				.forEach(watcher -> ((IMatterDatabaseWatcher) watcher).onDatabaseEvent(event));
+		refreshMonitorCount();
+	}
+
+	private void refreshMonitorCount() {
+		if (rootClient.getWorld() == null || rootClient.getWorld().isRemote) {
+			return;
+		}
+
+		int count = 0;
+		if (rootClient.getNetwork() != null) {
+			for (IMatterDatabase database : rootClient.getConnectedDatabases()) {
+				for (ItemStack patternDrive : database.getPatternStorageList()) {
+					if (patternDrive != null && patternDrive.getItem() instanceof IMatterPatternStorage) {
+						IMatterPatternStorage storage = (IMatterPatternStorage) patternDrive.getItem();
+						int capacity = storage.getCapacity(patternDrive);
+						for (int i = 0; i < capacity; i++) {
+							if (storage.getPatternAt(patternDrive, i) != null) {
+								count++;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (rootClient.getCount() != count) {
+			rootClient.setCount(count);
+			rootClient.markDirty();
+		}
 	}
 }

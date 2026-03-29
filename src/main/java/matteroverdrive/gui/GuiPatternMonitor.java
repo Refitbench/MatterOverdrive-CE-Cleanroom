@@ -12,11 +12,11 @@ import matteroverdrive.gui.element.*;
 import matteroverdrive.gui.pages.PageTasks;
 import matteroverdrive.machines.pattern_monitor.TileEntityMachinePatternMonitor;
 import matteroverdrive.network.packet.server.pattern_monitor.PacketPatternMonitorAddRequest;
+import matteroverdrive.network.packet.server.task_queue.PacketMoveTaskToTop;
 import matteroverdrive.network.packet.server.task_queue.PacketRemoveTask;
 import matteroverdrive.proxy.ClientProxy;
 import matteroverdrive.util.MOStringHelper;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 
 public class GuiPatternMonitor extends MOGuiNetworkMachine<TileEntityMachinePatternMonitor> {
@@ -43,7 +43,7 @@ public class GuiPatternMonitor extends MOGuiNetworkMachine<TileEntityMachinePatt
 	@Override
 	public void registerPages(MOBaseContainer container, TileEntityMachinePatternMonitor machine) {
 		super.registerPages(container, machine);
-		pageTasks = new PageTasks(this, 0, 0, xSize, ySize, machine.getTaskQueue(0));
+		pageTasks = new PageTasks(this, 0, 0, xSize, ySize, machine.getTaskQueue(1));
 		pageTasks.setName("Tasks");
 		AddPage(pageTasks, ClientProxy.holoIcons.getIcon("page_icon_tasks"),
 				MOStringHelper.translateToLocal("gui.tooltip.page.tasks")).setIconColor(Reference.COLOR_MATTER);
@@ -76,10 +76,12 @@ public class GuiPatternMonitor extends MOGuiNetworkMachine<TileEntityMachinePatt
 				}
 			}
 		} else if (element instanceof ElementTaskList) {
-			NBTTagCompound tagCompound = new NBTTagCompound();
-			tagCompound.setInteger("TaskID", mouseButton);
-			MatterOverdrive.NETWORK
-					.sendToServer(new PacketRemoveTask(machine, mouseButton, (byte) 0, MatterNetworkTaskState.INVALID));
+			if (buttonName.equals("DropTask")) {
+				MatterOverdrive.NETWORK.sendToServer(
+						new PacketRemoveTask(machine, mouseButton, (byte) 1, MatterNetworkTaskState.INVALID));
+			} else if (buttonName.equals("MoveTaskToTop")) {
+				MatterOverdrive.NETWORK.sendToServer(new PacketMoveTaskToTop(machine, mouseButton, (byte) 1));
+			}
 		}
 	}
 

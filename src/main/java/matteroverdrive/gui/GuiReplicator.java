@@ -14,6 +14,7 @@ import matteroverdrive.init.MatterOverdriveCapabilities;
 import matteroverdrive.machines.replicator.TileEntityMachineReplicator;
 import matteroverdrive.matter_network.tasks.MatterNetworkTaskReplicatePattern;
 import matteroverdrive.network.packet.server.task_queue.PacketRemoveTask;
+import matteroverdrive.network.packet.server.task_queue.PacketMoveTaskToTop;
 import matteroverdrive.proxy.ClientProxy;
 import matteroverdrive.util.MOStringHelper;
 import net.minecraft.client.Minecraft;
@@ -21,7 +22,6 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.TextFormatting;
 
 import java.util.List;
@@ -141,10 +141,10 @@ public class GuiReplicator extends MOGuiNetworkMachine<TileEntityMachineReplicat
 	public void handleElementButtonClick(MOElementBase element, String buttonName, int mouseButton) {
 		super.handleElementButtonClick(element, buttonName, mouseButton);
 		if (buttonName.equals("DropTask")) {
-			NBTTagCompound tagCompound = new NBTTagCompound();
-			tagCompound.setInteger("TaskID", mouseButton);
 			MatterOverdrive.NETWORK
 					.sendToServer(new PacketRemoveTask(machine, mouseButton, (byte) 0, MatterNetworkTaskState.INVALID));
+		} else if (buttonName.equals("MoveTaskToTop")) {
+			MatterOverdrive.NETWORK.sendToServer(new PacketMoveTaskToTop(machine, mouseButton, (byte) 0));
 		}
 	}
 

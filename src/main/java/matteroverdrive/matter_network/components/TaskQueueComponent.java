@@ -74,6 +74,11 @@ public class TaskQueueComponent<T extends MatterNetworkTask, M extends MOTileEnt
 				.forEach(watcher -> ((ITaskQueueWatcher) watcher).onTaskRemoved(machine, taskId, queueId));
 	}
 
+	public void sendTaskQueueChangedToWatchers(long taskId) {
+		machine.getWatchers().stream().filter(watcher -> watcher instanceof ITaskQueueWatcher)
+				.forEach(watcher -> ((ITaskQueueWatcher) watcher).onTaskChanged(machine, taskId, queueId));
+	}
+
 	public MatterNetworkTaskQueue<T> getTaskQueue() {
 		return taskQueue;
 	}

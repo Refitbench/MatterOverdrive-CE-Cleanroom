@@ -34,7 +34,10 @@ public class ComponentTaskProcessingPatternMonitor extends
 							replicatePattern.getPattern(), replicatePattern.getAmount());
 					machine.getNetwork().post(requestPatternReplication);
 					if (requestPatternReplication.isAccepted()) {
-						getTaskQueue().dequeue();
+						MatterNetworkTaskReplicatePattern acceptedTask = getTaskQueue().dequeue();
+						if (acceptedTask != null) {
+							sendTaskQueueRemovedFromWatchers(acceptedTask.getId());
+						}
 					}
 				}
 			}

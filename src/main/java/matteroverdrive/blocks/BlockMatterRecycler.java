@@ -67,11 +67,7 @@ public class BlockMatterRecycler extends MOMatterEnergyStorageBlock<TileEntityMa
 		if (active) {
 			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.recycler_running.getDefaultState()
 					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.recycler_running.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
 		} else {
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.recycler.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
 			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.recycler.getDefaultState()
 					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
 		}

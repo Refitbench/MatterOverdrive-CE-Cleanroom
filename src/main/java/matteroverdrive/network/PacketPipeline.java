@@ -43,6 +43,7 @@ import matteroverdrive.network.packet.server.PacketTeleportPlayer;
 import matteroverdrive.network.packet.server.PacketUnlockBioticStat;
 import matteroverdrive.network.packet.server.pattern_monitor.PacketPatternMonitorAddRequest;
 import matteroverdrive.network.packet.server.starmap.PacketStarMapClientCommands;
+import matteroverdrive.network.packet.server.task_queue.PacketMoveTaskToTop;
 import matteroverdrive.network.packet.server.task_queue.PacketRemoveTask;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -72,6 +73,7 @@ public class PacketPipeline {
 		registerPacket(PacketSendItemPattern.ClientHandler.class, PacketSendItemPattern.class);
 		registerPacket(PacketPatternMonitorAddRequest.ServerHandler.class, PacketPatternMonitorAddRequest.class);
 		registerPacket(PacketReplicationComplete.ClientHandler.class, PacketReplicationComplete.class);
+		registerPacket(PacketMoveTaskToTop.ServerHandler.class, PacketMoveTaskToTop.class);
 		registerPacket(PacketRemoveTask.ServerHandler.class, PacketRemoveTask.class);
 		registerPacket(PacketSyncTransportProgress.ClientHandler.class, PacketSyncTransportProgress.class);
 		registerBiPacket(PacketMatterScannerGetDatabase.Handler.class, PacketMatterScannerGetDatabase.class);

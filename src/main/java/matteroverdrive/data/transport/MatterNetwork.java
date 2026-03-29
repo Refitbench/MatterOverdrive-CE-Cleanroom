@@ -22,8 +22,8 @@ public class MatterNetwork extends AbstractGridNetwork<IMatterNetworkConnection>
 	protected void onNodeAdded(IMatterNetworkConnection node) {
 		if (node instanceof IMatterNetworkClient) {
 			IMatterNetworkClient client = (IMatterNetworkClient) node;
-			post(new IMatterNetworkEvent.ClientAdded(client));
 			clients.add(client);
+			post(new IMatterNetworkEvent.ClientAdded(client));
 			client.getMatterNetworkComponent().onNetworkEvent(new IMatterNetworkEvent.AddedToNetwork());
 		}
 	}
@@ -32,8 +32,8 @@ public class MatterNetwork extends AbstractGridNetwork<IMatterNetworkConnection>
 	protected void onNodeRemoved(IMatterNetworkConnection node) {
 		if (node instanceof IMatterNetworkClient) {
 			IMatterNetworkClient client = (IMatterNetworkClient) node;
-			post(new IMatterNetworkEvent.ClientRemoved(client));
 			clients.remove(client);
+			post(new IMatterNetworkEvent.ClientRemoved(client));
 			client.getMatterNetworkComponent().onNetworkEvent(new IMatterNetworkEvent.RemovedFromNetwork());
 		}
 	}

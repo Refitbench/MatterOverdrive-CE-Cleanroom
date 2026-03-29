@@ -8,6 +8,9 @@
 -   Change how long the shield last, or how long its cooldown is.
 - Implement a "infinite" replication request.
 
+- Add Scanner / Analyzer chance to fail. 
+- Rework the Portable Decomposer.
+
 
 # OPTIMIZATIONS
 - Cables seem to be doing connection scans, we should only update this on a side change, cache!

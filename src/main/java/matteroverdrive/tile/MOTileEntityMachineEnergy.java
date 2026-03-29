@@ -22,8 +22,11 @@ import java.util.EnumSet;
 
 public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 	public static final int ENERGY_CLIENT_SYNC_RANGE = 16;
+	public static final int ENERGY_CLIENT_SYNC_INTERVAL_TICKS = 5;
 	protected MachineEnergyStorage<MOTileEntityMachineEnergy> energyStorage;
 	protected int energySlotID;
+	private int lastSyncedEnergy = Integer.MIN_VALUE;
+	private long nextEnergySyncTick = Long.MIN_VALUE;
 
 	public MOTileEntityMachineEnergy(int upgradeCount) {
 		super(upgradeCount);
@@ -93,9 +96,33 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 	}
 
 	public void UpdateClientPower() {
+		UpdateClientPower(false);
+	}
+
+	public void UpdateClientPower(boolean force) {
+		if (world == null || world.isRemote) {
+			return;
+		}
+
+		int currentEnergy = energyStorage.getEnergyStored();
+		boolean changed = currentEnergy != lastSyncedEnergy;
+		long now = world.getTotalWorldTime();
+
+		if (!force) {
+			if (!changed) {
+				return;
+			}
+			boolean boundaryValue = currentEnergy == 0 || currentEnergy == energyStorage.getMaxEnergyStored();
+			if (now < nextEnergySyncTick && !boundaryValue) {
+				return;
+			}
+		}
+
 		MatterOverdrive.NETWORK.sendToAllAround(new PacketPowerUpdate(this),
 				new NetworkRegistry.TargetPoint(world.provider.getDimension(), getPos().getX(), getPos().getY(),
 						getPos().getZ(), ENERGY_CLIENT_SYNC_RANGE));
+		lastSyncedEnergy = currentEnergy;
+		nextEnergySyncTick = now + ENERGY_CLIENT_SYNC_INTERVAL_TICKS;
 	}
 
 	@Override

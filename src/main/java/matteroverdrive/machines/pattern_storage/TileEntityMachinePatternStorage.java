@@ -40,7 +40,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -53,11 +53,18 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 			UpgradeTypes.PowerUsage);
 	public static int ENERGY_CAPACITY = 512000;
 	public static int ENERGY_TRANSFER = 512000;
-	public static int patternCount = 0;
 	public int input_slot;
 	public int[] pattern_storage_slots;
 	private ComponentMatterNetworkPatternStorage networkComponent;
 	private TaskQueueComponent<MatterNetworkTaskReplicatePattern, TileEntityMachinePatternStorage> taskQueueComponent;
+
+	// Cached state — invalidated by network events and inventory changes
+	private int patternCount = 0;
+	private boolean patternCountDirty = true;
+	private int lastPushedPatternCount = -1;
+	private int cachedEnergyDrainMax = -1;
+	private List<TileEntityMachinePatternMonitor> cachedMonitors = Collections.emptyList();
+	private boolean monitorsDirty = true;
 
 	public TileEntityMachinePatternStorage() {
 		super(4);
@@ -79,48 +86,27 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 		if (!world.isRemote) {
 			if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
 				this.energyStorage.extractEnergy(getEnergyDrainPerTick(), false);
-				UpdateClientPower();
 				manageLinking();
 			}
 			if (getNetwork() != null) {
-				List<IMatterNetworkClient> clients = getNetwork().getClients();
-				List<IMatterDatabase> databases = new ArrayList<>();
-				List<TileEntityMachinePatternMonitor> monitors = new ArrayList<>();
-				for (IMatterNetworkClient client : clients) {
-					if (client instanceof IMatterDatabase) {
-						databases.add((IMatterDatabase) client);
-					}
+				if (patternCountDirty) {
+					recalculatePatternCount();
 				}
-				patternCount = 0;
-				for (IMatterDatabase database : databases) {
-					for (ItemStack patternDrive : database.getPatternStorageList()) {
-						if (patternDrive != null && patternDrive.getItem() instanceof IMatterPatternStorage) {
-							int capacity = ((IMatterPatternStorage) patternDrive.getItem()).getCapacity(patternDrive);
-							for (int i = 0; i < capacity; i++) {
-								ItemPattern pattern = ((IMatterPatternStorage) patternDrive.getItem())
-										.getPatternAt(patternDrive, i);
-								if (pattern != null) {
-									patternCount++;
-								}
-							}
-						}
-					}
+				if (monitorsDirty) {
+					recalculateMonitors();
 				}
-				for (IMatterNetworkClient client : clients) {
-					if (client instanceof TileEntityMachinePatternMonitor
-							&& ((TileEntityMachinePatternMonitor) client).getNetwork() == this.getNetwork()) {
-						monitors.add((TileEntityMachinePatternMonitor) client);
-						TileEntityMachinePatternMonitor tileEntity = (TileEntityMachinePatternMonitor) world
-								.getTileEntity(((TileEntityMachinePatternMonitor) client).getPos());
-						tileEntity.setCount(patternCount);
-						world.markBlockRangeForRenderUpdate(((TileEntityMachinePatternMonitor) client).getPos(),
-								((TileEntityMachinePatternMonitor) client).getPos());
-						world.notifyBlockUpdate(((TileEntityMachinePatternMonitor) client).getPos(),
-								world.getBlockState(((TileEntityMachinePatternMonitor) client).getPos()),
-								world.getBlockState(((TileEntityMachinePatternMonitor) client).getPos()), 3);
-						world.scheduleBlockUpdate(((TileEntityMachinePatternMonitor) client).getPos(),
-								this.getBlockType(), 0, 0);
-						markDirty();
+				if (patternCount != lastPushedPatternCount) {
+					lastPushedPatternCount = patternCount;
+					for (TileEntityMachinePatternMonitor monitor : cachedMonitors) {
+						monitor.setCount(patternCount);
+						// Mark the monitor dirty so its TE update packet (which carries Count)
+						// is dispatched to nearby clients, updating the front-face display.
+						monitor.markDirty();
+						BlockPos monitorPos = monitor.getPos();
+						IBlockState monitorState = world.getBlockState(monitorPos);
+						world.markBlockRangeForRenderUpdate(monitorPos, monitorPos);
+						world.notifyBlockUpdate(monitorPos, monitorState, monitorState, 3);
+						world.scheduleBlockUpdate(monitorPos, monitorState.getBlock(), 0, 0);
 					}
 				}
 			}
@@ -348,6 +334,8 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 
 	@Override
 	public void onPatternStorageChange(int storageId) {
+		cachedEnergyDrainMax = -1;
+		patternCountDirty = true;
 		if (getNetwork() != null) {
 			getNetwork().post(new MatterDatabaseEvent.PatternStorageChanged(this, storageId));
 		}
@@ -400,25 +388,21 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 	}
 
 	public int getEnergyDrainMax() {
-		int patternDrives = 0;
+		if (cachedEnergyDrainMax >= 0) {
+			return cachedEnergyDrainMax;
+		}
+		int capacitySlots = 0;
 		for (ItemStack patternDrive : getPatternStorageList()) {
 			if (patternDrive != null && patternDrive.getItem() instanceof IMatterPatternStorage) {
-				int capacity = ((IMatterPatternStorage) patternDrive.getItem()).getCapacity(patternDrive);
-				for (int i = 0; i < capacity; i++) {
-					IMatterPatternStorage pattern = ((IMatterPatternStorage) patternDrive.getItem());
-					if (pattern != null) {
-						patternDrives++;
-					}
-				}
+				capacitySlots += ((IMatterPatternStorage) patternDrive.getItem()).getCapacity(patternDrive);
 			}
 		}
-		if (patternDrives > 0) {
-			patternDrives = patternDrives / 2;
-			int Drives = ENERGY_DRAIN_PER_DRIVE * patternDrives;
-			return (int) Math.round(Drives) + Math.round(ENERGY_DRAIN_CHILL);
+		if (capacitySlots > 0) {
+			cachedEnergyDrainMax = ENERGY_DRAIN_PER_DRIVE * (capacitySlots / 2) + ENERGY_DRAIN_CHILL;
 		} else {
-			return (int) Math.round(ENERGY_DRAIN_CHILL);
+			cachedEnergyDrainMax = ENERGY_DRAIN_CHILL;
 		}
+		return cachedEnergyDrainMax;
 	}
 
 	@Override
@@ -501,4 +485,50 @@ public class TileEntityMachinePatternStorage extends MOTileEntityMachineEnergy i
 		return 1;
 	}
 
+	// Called from ComponentMatterNetworkPatternStorage on relevant network events
+	void invalidatePatternCount() {
+		patternCountDirty = true;
+	}
+
+	void invalidateMonitorCache() {
+		monitorsDirty = true;
+	}
+
+	private void recalculatePatternCount() {
+		int count = 0;
+		for (IMatterNetworkClient client : getNetwork().getClients()) {
+			if (client instanceof IMatterDatabase) {
+				for (ItemStack patternDrive : ((IMatterDatabase) client).getPatternStorageList()) {
+					if (patternDrive != null && patternDrive.getItem() instanceof IMatterPatternStorage) {
+						IMatterPatternStorage storage = (IMatterPatternStorage) patternDrive.getItem();
+						int capacity = storage.getCapacity(patternDrive);
+						for (int i = 0; i < capacity; i++) {
+							if (storage.getPatternAt(patternDrive, i) != null) {
+								count++;
+							}
+						}
+					}
+				}
+			}
+		}
+		patternCount = count;
+		patternCountDirty = false;
+	}
+
+	private void recalculateMonitors() {
+		MatterNetwork net = getNetwork();
+		if (net == null) {
+			cachedMonitors = Collections.emptyList();
+		} else {
+			java.util.ArrayList<TileEntityMachinePatternMonitor> list = new java.util.ArrayList<>();
+			for (IMatterNetworkClient client : net.getClients()) {
+				if (client instanceof TileEntityMachinePatternMonitor
+						&& ((TileEntityMachinePatternMonitor) client).getNetwork() == net) {
+					list.add((TileEntityMachinePatternMonitor) client);
+				}
+			}
+			cachedMonitors = list;
+		}
+		monitorsDirty = false;
+	}
 }
