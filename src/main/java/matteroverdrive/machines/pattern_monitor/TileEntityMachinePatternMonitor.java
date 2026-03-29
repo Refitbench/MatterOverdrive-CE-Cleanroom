@@ -14,7 +14,10 @@ import matteroverdrive.machines.MOTileEntityMachine;
 import matteroverdrive.machines.MachineNBTCategory;
 import matteroverdrive.machines.components.ComponentMatterNetworkConfigs;
 import matteroverdrive.machines.events.MachineEvent;
+import matteroverdrive.machines.replicator.ComponentTaskProcessingReplicator;
 import matteroverdrive.matter_network.MatterNetworkTaskQueue;
+import matteroverdrive.matter_network.tasks.MatterNetworkTaskReplicatePattern;
+import matteroverdrive.machines.replicator.TileEntityMachineReplicator;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -31,6 +34,27 @@ public class TileEntityMachinePatternMonitor extends MOTileEntityMachine
 	private ComponentMatterNetworkPatternMonitor networkComponent;
 	private ComponentMatterNetworkConfigs componentMatterNetworkConfigs;
 	private ComponentTaskProcessingPatternMonitor taskProcessingComponent;
+	private final MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern> networkActiveTaskQueue =
+			new MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern>("Network Active Tasks", 64) {
+				@Override
+				public MatterNetworkTaskReplicatePattern dropAt(int i) {
+					MatterNetworkTaskReplicatePattern task = super.dropAt(i);
+					if (task != null) {
+						propagateRemovalToReplicators(task);
+					}
+					return task;
+				}
+
+				@Override
+				public MatterNetworkTaskReplicatePattern moveToFront(int i) {
+					MatterNetworkTaskReplicatePattern task = getAt(i);
+					if (task != null) {
+						super.moveToFront(i);
+						propagateMoveToFront(task);
+					}
+					return task;
+				}
+			};
 	private int count = 0;
 
 	public TileEntityMachinePatternMonitor() {
@@ -177,12 +201,62 @@ public class TileEntityMachinePatternMonitor extends MOTileEntityMachine
 
 	@Override
 	public MatterNetworkTaskQueue<?> getTaskQueue(int queueID) {
+		if (queueID == 1) {
+			return networkActiveTaskQueue;
+		}
 		return taskProcessingComponent.getTaskQueue();
 	}
 
 	@Override
 	public int getTaskQueueCount() {
-		return 1;
+		return 2;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void propagateRemovalToReplicators(MatterNetworkTaskReplicatePattern task) {
+		if (taskProcessingComponent.getTaskQueue().remove(task)) {
+			taskProcessingComponent.sendTaskQueueRemovedFromWatchers(task.getId());
+		}
+
+		if (getNetwork() == null) {
+			return;
+		}
+		for (IMatterNetworkClient client : getNetwork().getClients()) {
+			if (client instanceof TileEntityMachineReplicator) {
+				MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern> repQueue =
+						(MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern>)
+						((TileEntityMachineReplicator) client).getTaskQueue(0);
+				if (repQueue.remove(task)) {
+					((TileEntityMachineReplicator) client).getComponent(ComponentTaskProcessingReplicator.class)
+							.sendTaskQueueRemovedFromWatchers(task.getId());
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void propagateMoveToFront(MatterNetworkTaskReplicatePattern task) {
+		if (taskProcessingComponent.getTaskQueue().moveToFront(task)) {
+			taskProcessingComponent.sendTaskQueueChangedToWatchers(task.getId());
+			return;
+		}
+
+		if (getNetwork() == null) {
+			return;
+		}
+
+		for (IMatterNetworkClient client : getNetwork().getClients()) {
+			if (client instanceof TileEntityMachineReplicator) {
+				TileEntityMachineReplicator replicator = (TileEntityMachineReplicator) client;
+				MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern> repQueue =
+						(MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern>) replicator.getTaskQueue(0);
+				if (repQueue.moveToFront(task)) {
+					replicator.getComponent(ComponentTaskProcessingReplicator.class)
+							.sendTaskQueueChangedToWatchers(task.getId());
+					return;
+				}
+			}
+		}
 	}
 
 }

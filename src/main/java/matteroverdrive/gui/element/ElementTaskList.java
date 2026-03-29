@@ -98,6 +98,7 @@ public class ElementTaskList extends MOElementListBox {
 	protected void onElementClicked(int index, int mouseX, int mouseY) {
 		if (index != 0) {
 			if (mouseY > 22 && mouseX > 60 && mouseX < 110) {
+				buttonHandler.handleElementButtonClick(this, "MoveTaskToTop", index);
 				return;
 			}
 		}

@@ -48,6 +48,24 @@ public class MatterNetworkTaskQueue<T extends MatterNetworkTask> {
 		return null;
 	}
 
+	public T moveToFront(int i) {
+		if (i <= 0 || i >= elements.size()) {
+			return getAt(i);
+		}
+		T element = elements.remove(i);
+		elements.add(0, element);
+		return element;
+	}
+
+	public boolean moveToFront(T task) {
+		int index = elements.indexOf(task);
+		if (index >= 0) {
+			moveToFront(index);
+			return true;
+		}
+		return false;
+	}
+
 	public T dequeue() {
 		if (elements.size() > 0) {
 			return elements.remove(0);

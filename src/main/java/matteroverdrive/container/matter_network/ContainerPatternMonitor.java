@@ -4,16 +4,23 @@ package matteroverdrive.container.matter_network;
 import matteroverdrive.MatterOverdrive;
 import matteroverdrive.api.matter.IMatterDatabase;
 import matteroverdrive.api.matter.IMatterPatternStorage;
+import matteroverdrive.api.matter_network.IMatterNetworkClient;
+import matteroverdrive.api.network.IMatterNetworkDispatcher;
 import matteroverdrive.data.matter_network.ItemPattern;
 import matteroverdrive.data.matter_network.ItemPatternMapping;
 import matteroverdrive.data.matter_network.MatterDatabaseEvent;
 import matteroverdrive.gui.GuiPatternMonitor;
 import matteroverdrive.machines.MOTileEntityMachine;
 import matteroverdrive.machines.pattern_monitor.TileEntityMachinePatternMonitor;
+import matteroverdrive.machines.replicator.TileEntityMachineReplicator;
+import matteroverdrive.matter_network.MatterNetworkTaskQueue;
+import matteroverdrive.matter_network.tasks.MatterNetworkTaskReplicatePattern;
 import matteroverdrive.network.packet.client.pattern_monitor.PacketClearPatterns;
 import matteroverdrive.network.packet.client.pattern_monitor.PacketSendItemPattern;
+import matteroverdrive.network.packet.client.task_queue.PacketSyncTaskQueue;
 import matteroverdrive.util.MOContainerHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
@@ -21,8 +28,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ContainerPatternMonitor extends ContainerTaskQueueMachine<TileEntityMachinePatternMonitor>
 		implements IMatterDatabaseWatcher {
+
+	private final List<TileEntityMachineReplicator> watchedReplicators = new ArrayList<>();
 
 	public ContainerPatternMonitor(InventoryPlayer inventory, TileEntityMachinePatternMonitor machine) {
 		super(inventory, machine);
@@ -64,10 +76,84 @@ public class ContainerPatternMonitor extends ContainerTaskQueueMachine<TileEntit
 
 	@Override
 	public void onWatcherAdded(MOTileEntityMachine machine) {
-		super.onWatcherAdded(machine);
-		if (machine instanceof IMatterDatabaseMonitor) {
-			sendAllPatterns((IMatterDatabaseMonitor) machine);
+		if (machine == this.machine) {
+			// Normal handling for our own monitor machine
+			super.onWatcherAdded(machine);
+			if (machine instanceof IMatterDatabaseMonitor) {
+				sendAllPatterns((IMatterDatabaseMonitor) machine);
+			}
+			refreshReplicatorWatchers();
+			sendNetworkTaskQueue();
 		}
+		// For replicators: called by our own addWatcher above.
+		// Don't call super - we don't want individual replicator queues sent to the client.
+	}
+
+	@Override
+	public void onContainerClosed(EntityPlayer playerIn) {
+		super.onContainerClosed(playerIn);
+		for (TileEntityMachineReplicator replicator : watchedReplicators) {
+			replicator.removeWatcher(this);
+		}
+		watchedReplicators.clear();
+	}
+
+	@Override
+	public void onTaskAdded(IMatterNetworkDispatcher dispatcher, long taskId, int queueId) {
+		sendNetworkTaskQueue();
+	}
+
+	@Override
+	public void onTaskRemoved(IMatterNetworkDispatcher dispatcher, long taskId, int queueId) {
+		sendNetworkTaskQueue();
+	}
+
+	@Override
+	public void onTaskChanged(IMatterNetworkDispatcher dispatcher, long taskId, int queueId) {
+		sendNetworkTaskQueue();
+	}
+
+	private void refreshReplicatorWatchers() {
+		for (TileEntityMachineReplicator replicator : watchedReplicators) {
+			replicator.removeWatcher(this);
+		}
+		watchedReplicators.clear();
+
+		if (machine.getNetwork() == null) {
+			return;
+		}
+
+		for (IMatterNetworkClient client : machine.getNetwork().getClients()) {
+			if (client instanceof TileEntityMachineReplicator) {
+				TileEntityMachineReplicator replicator = (TileEntityMachineReplicator) client;
+				watchedReplicators.add(replicator);
+				replicator.addWatcher(this);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void sendNetworkTaskQueue() {
+		MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern> netQueue =
+				(MatterNetworkTaskQueue<MatterNetworkTaskReplicatePattern>) machine.getTaskQueue(1);
+		netQueue.clear();
+		for (TileEntityMachineReplicator replicator : watchedReplicators) {
+			MatterNetworkTaskQueue<?> repQueue = replicator.getTaskQueue(0);
+			for (int i = 0; i < repQueue.size(); i++) {
+				Object task = repQueue.getAt(i);
+				if (task instanceof MatterNetworkTaskReplicatePattern) {
+					netQueue.queue((MatterNetworkTaskReplicatePattern) task);
+				}
+			}
+		}
+		MatterNetworkTaskQueue<?> pendingQueue = machine.getTaskQueue(0);
+		for (int i = 0; i < pendingQueue.size(); i++) {
+			Object task = pendingQueue.getAt(i);
+			if (task instanceof MatterNetworkTaskReplicatePattern) {
+				netQueue.queue((MatterNetworkTaskReplicatePattern) task);
+			}
+		}
+		MatterOverdrive.NETWORK.sendTo(new PacketSyncTaskQueue(machine, 1), (EntityPlayerMP) getPlayer());
 	}
 
 	private void sendAllPatterns(IMatterDatabaseMonitor monitor) {
@@ -90,11 +176,15 @@ public class ContainerPatternMonitor extends ContainerTaskQueueMachine<TileEntit
 
 	@Override
 	public void onConnectToNetwork(IMatterDatabaseMonitor monitor) {
+		refreshReplicatorWatchers();
 		sendAllPatterns(monitor);
+		sendNetworkTaskQueue();
 	}
 
 	@Override
 	public void onDisconnectFromNetwork(IMatterDatabaseMonitor monitor) {
+		refreshReplicatorWatchers();
+		sendNetworkTaskQueue();
 		MatterOverdrive.NETWORK.sendTo(new PacketClearPatterns(windowId), (EntityPlayerMP) getPlayer());
 	}
 

@@ -43,6 +43,7 @@ public class ComponentTaskProcessingReplicator extends
 
 	public boolean addReplicationTask(MatterNetworkTaskReplicatePattern task) {
 		if (getTaskQueue().queue(task)) {
+			sendTaskQueueAddedToWatchers(task.getId());
 			return true;
 		}
 		return false;
@@ -64,7 +65,10 @@ public class ComponentTaskProcessingReplicator extends
 
 				if (replicatePattern.isValid(getWorld())) {
 					if (machine.getEnergyStorage().getEnergyStored() >= getEnergyDrainPerTick()) {
-						replicatePattern.setState(MatterNetworkTaskState.PROCESSING);
+						if (replicatePattern.getState() != MatterNetworkTaskState.PROCESSING) {
+							replicatePattern.setState(MatterNetworkTaskState.PROCESSING);
+							sendTaskQueueChangedToWatchers(replicatePattern.getId());
+						}
 						this.replicateTime++;
 						machine.getEnergyStorage().extractEnergy(getEnergyDrainPerTick(patternStack), false);
 						int time = getSpeed(patternStack);
@@ -99,7 +103,11 @@ public class ComponentTaskProcessingReplicator extends
 						replicateProgress = (float) replicateTime / (float) time;
 					}
 				} else {
+					MatterNetworkTaskReplicatePattern invalid = getTaskQueue().peek();
 					getTaskQueue().dequeue();
+					if (invalid != null) {
+						sendTaskQueueRemovedFromWatchers(invalid.getId());
+					}
 				}
 			}
 		} else {
@@ -131,6 +139,9 @@ public class ComponentTaskProcessingReplicator extends
 					if (task.getAmount() <= 0) {
 						task.setState(MatterNetworkTaskState.FINISHED);
 						getTaskQueue().dequeue();
+						sendTaskQueueRemovedFromWatchers(task.getId());
+					} else {
+						sendTaskQueueChangedToWatchers(task.getId());
 					}
 				}
 			}
