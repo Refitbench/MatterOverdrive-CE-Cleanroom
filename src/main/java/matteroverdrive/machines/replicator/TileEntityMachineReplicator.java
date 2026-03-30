@@ -20,6 +20,7 @@ import matteroverdrive.machines.components.ComponentMatterNetworkConfigs;
 import matteroverdrive.machines.events.MachineEvent;
 import matteroverdrive.matter_network.MatterNetworkTaskQueue;
 import matteroverdrive.matter_network.components.MatterNetworkComponentClient;
+import matteroverdrive.matter_network.tasks.MatterNetworkTaskReplicatePattern;
 import matteroverdrive.tile.MOTileEntityMachineMatter;
 import matteroverdrive.util.MOBlockHelper;
 import matteroverdrive.util.math.MOMathHelper;
@@ -426,7 +427,12 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 	}
 
 	public int getEnergyDrainPerTick() {
-		return taskProcessingComponent.getEnergyDrainPerTick();
+		MatterNetworkTaskReplicatePattern replicatePattern = taskProcessingComponent.getTaskQueue().peek();
+		if (replicatePattern == null) {
+			return 0;
+		}
+		ItemStack patternStack = replicatePattern.getPattern().toItemStack(false);
+		return taskProcessingComponent.getEnergyDrainPerTick(patternStack);
 	}
 
 	public int getEnergyDrainMax() {
