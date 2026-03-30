@@ -65,7 +65,7 @@ public class GuiPatternMonitor extends MOGuiNetworkMachine<TileEntityMachinePatt
 					ElementMonitorItemPattern itemPattern = (ElementMonitorItemPattern) elementGrid.getElements()
 							.get(i);
 
-					if (itemPattern.getAmount() > 0) {
+					if (itemPattern.getAmount() != 0) {
 						ItemPattern pattern = itemPattern.getPatternMapping().getItemPattern().copy();
 						MatterOverdrive.NETWORK.sendToServer(
 								new PacketPatternMonitorAddRequest(machine, pattern, itemPattern.getAmount()));

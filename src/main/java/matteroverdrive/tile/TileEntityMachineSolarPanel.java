@@ -50,10 +50,8 @@ public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
 				if (energyStorage.getEnergyStored() < getEnergyStorage().getMaxEnergyStored()) {
 					int energy = energyStorage.getEnergyStored();
 					energy = MathHelper.clamp(energy + getChargeAmount(), 0, energyStorage.getMaxEnergyStored());
-					if (energy != energyStorage.getEnergyStored()) {
-						UpdateClientPower();
-					}
 					getEnergyStorage().setEnergy(energy);
+					UpdateClientPower();
 				}
 			}
 		}

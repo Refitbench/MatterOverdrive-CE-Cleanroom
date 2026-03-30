@@ -64,18 +64,19 @@ public class ComponentTaskProcessingReplicator extends
 				ItemStack patternStack = replicatePattern.getPattern().toItemStack(false);
 
 				if (replicatePattern.isValid(getWorld())) {
-					if (machine.getEnergyStorage().getEnergyStored() >= getEnergyDrainPerTick()) {
+					int time = getSpeed(patternStack);
+					int energyDrain = getEnergyDrainPerTick(patternStack);
+					if (machine.getEnergyStorage().getEnergyStored() >= energyDrain) {
 						if (replicatePattern.getState() != MatterNetworkTaskState.PROCESSING) {
 							replicatePattern.setState(MatterNetworkTaskState.PROCESSING);
 							sendTaskQueueChangedToWatchers(replicatePattern.getId());
 						}
 						this.replicateTime++;
-						machine.getEnergyStorage().extractEnergy(getEnergyDrainPerTick(patternStack), false);
-						int time = getSpeed(patternStack);
+						machine.getEnergyStorage().extractEnergy(energyDrain, false);
 
 						if (this.replicateTime >= time) {
 							this.replicateTime = 0;
-							this.replicateItem(replicatePattern.getPattern(), patternStack);
+							boolean replicationSucceeded = this.replicateItem(replicatePattern.getPattern(), patternStack);
 							MatterOverdrive.NETWORK.sendToDimention(new PacketReplicationComplete(machine), getWorld());
 
 							TileEntity TE = getWorld().getTileEntity(getPos());
@@ -84,9 +85,7 @@ public class ComponentTaskProcessingReplicator extends
 							if (TE != null) {
 								TileEntityMachineReplicator temr = (TileEntityMachineReplicator) TE;
 
-								ItemStack stack = temr.getStackInSlot(0);
-
-								if (!(temr.getUpgradeMultiply(UpgradeTypes.Muffler) == 2d || stack.isEmpty())) {
+								if (replicationSucceeded && temr.getUpgradeMultiply(UpgradeTypes.Muffler) != 2d) {
 									SoundHandler.PlaySoundAt(getWorld(), MatterOverdriveSounds.replicateSuccess,
 											SoundCategory.BLOCKS, this.getPos().getX(), this.getPos().getY(),
 											this.getPos().getZ(),
@@ -117,7 +116,7 @@ public class ComponentTaskProcessingReplicator extends
 
 	}
 
-	private void replicateItem(ItemPattern itemPattern, ItemStack newItem) {
+	private boolean replicateItem(ItemPattern itemPattern, ItemStack newItem) {
 		if (isActive()) {
 			int matterAmount = MatterHelper.getMatterAmountFromItem(newItem);
 
@@ -135,17 +134,21 @@ public class ComponentTaskProcessingReplicator extends
 					int matter = storage.getMatterStored();
 					storage.setMatterStored(matter - matterAmount);
 					MatterNetworkTaskReplicatePattern task = getTaskQueue().peek();
-					task.setAmount(task.getAmount() - 1);
-					if (task.getAmount() <= 0) {
-						task.setState(MatterNetworkTaskState.FINISHED);
-						getTaskQueue().dequeue();
-						sendTaskQueueRemovedFromWatchers(task.getId());
-					} else {
-						sendTaskQueueChangedToWatchers(task.getId());
+					if (task.getAmount() != -1) {
+						task.setAmount(task.getAmount() - 1);
+						if (task.getAmount() <= 0) {
+							task.setState(MatterNetworkTaskState.FINISHED);
+							getTaskQueue().dequeue();
+							sendTaskQueueRemovedFromWatchers(task.getId());
+						} else {
+							sendTaskQueueChangedToWatchers(task.getId());
+						}
 					}
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
 	public int getEnergyDrainPerTick(ItemStack itemStack) {
@@ -153,12 +156,7 @@ public class ComponentTaskProcessingReplicator extends
 		return maxEnergy / getSpeed(itemStack);
 	}
 
-	public int getEnergyDrainPerTick() {
-		if (getTaskQueue().peek() != null && getTaskQueue().peek().isValid(getWorld())) {
-			return getEnergyDrainPerTick(getTaskQueue().peek().getPattern().toItemStack(false));
-		}
-		return 0;
-	}
+
 
 	public int getEnergyDrainMax() {
 		if (getTaskQueue().peek() != null && getTaskQueue().peek().isValid(getWorld())) {

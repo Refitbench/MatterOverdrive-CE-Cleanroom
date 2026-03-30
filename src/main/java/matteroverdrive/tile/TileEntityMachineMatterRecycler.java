@@ -141,17 +141,20 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 	}
 
 	private boolean canPutInOutput() {
-		ItemStack stack = getStackInSlot(OUTPUT_SLOT_ID);
+		ItemStack existing = getStackInSlot(OUTPUT_SLOT_ID);
 		ItemStack inputStack = getStackInSlot(INPUT_SLOT_ID);
 
-		if (stack.isEmpty()) {
+		if (existing.isEmpty()) {
 			return true;
-		} else if (!inputStack.isEmpty() && inputStack.getItem() instanceof IRecyclable) {
-			ItemStack outputStack = ((IRecyclable) inputStack.getItem()).getOutput(inputStack);
-            return !outputStack.isEmpty() && outputStack.getCount() < stack.getMaxStackSize();
 		}
-
-		return false;
+		if (inputStack.isEmpty() || !(inputStack.getItem() instanceof IRecyclable)) {
+			return false;
+		}
+		ItemStack outputStack = ((IRecyclable) inputStack.getItem()).getOutput(inputStack);
+		return !outputStack.isEmpty()
+				&& existing.getItem() == outputStack.getItem()
+				&& ItemStack.areItemStackTagsEqual(existing, outputStack)
+				&& existing.getCount() < existing.getMaxStackSize();
 	}
 
 	public void recycleItem() {
@@ -162,7 +165,8 @@ public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 
 			if (stackInOutput.isEmpty()) {
 				setInventorySlotContents(OUTPUT_SLOT_ID, outputStack);
-			} else {
+			} else if (stackInOutput.getItem() == outputStack.getItem()
+					&& ItemStack.areItemStackTagsEqual(stackInOutput, outputStack)) {
 				stackInOutput.grow(1);
 			}
 

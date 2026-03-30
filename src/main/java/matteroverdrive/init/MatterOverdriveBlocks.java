@@ -125,14 +125,14 @@ public class MatterOverdriveBlocks {
 
 //		Matter Network
 		decomposer = register(new BlockDecomposer(TRITANIUM, "decomposer"));
-		decomposer_running = register(new BlockDecomposer(TRITANIUM, "decomposer_running"));
+		decomposer_running = register(new BlockDecomposer(TRITANIUM, "decomposer_running"), false);
 		decomposer_running.setCreativeTab(null);
 		recycler = register(new BlockMatterRecycler(TRITANIUM, "matter_recycler"));
-		recycler_running = register(new BlockMatterRecycler(TRITANIUM, "matter_recycler_running"));
+		recycler_running = register(new BlockMatterRecycler(TRITANIUM, "matter_recycler_running"), false);
 		recycler_running.setCreativeTab(null);
 		replicator = register(new BlockReplicator(TRITANIUM, "replicator"));
 		matter_analyzer = register(new BlockMatterAnalyzer(TRITANIUM, "matter_analyzer"));
-		matter_analyzer_running = register(new BlockMatterAnalyzer(TRITANIUM, "matter_analyzer_running"));
+		matter_analyzer_running = register(new BlockMatterAnalyzer(TRITANIUM, "matter_analyzer_running"), false);
 		matter_analyzer_running.setCreativeTab(null);
 		pattern_monitor = register(new BlockPatternMonitor(TRITANIUM, "pattern_monitor"));
 		pattern_storage = register(new BlockPatternStorage(TRITANIUM, "pattern_storage"));

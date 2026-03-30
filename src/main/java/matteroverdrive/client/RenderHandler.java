@@ -397,15 +397,15 @@ public class RenderHandler {
 	public void registerBlockColors() {
 		Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler((state, p_186720_2_, pos, tintIndex) -> {
 			EnumDyeColor color = state.getValue(BlockDecorativeColored.COLOR);
-			return ItemDye.DYE_COLORS[MathHelper.clamp(color.getMetadata(), 0, ItemDye.DYE_COLORS.length - 1)];
+			return color.getColorValue();
 		}, MatterOverdrive.BLOCKS.decorative_tritanium_plate_colored);
 		Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler((state, p_186720_2_, pos, tintIndex) -> {
 			EnumDyeColor color = state.getValue(BlockDecorativeColored.COLOR);
-			return ItemDye.DYE_COLORS[MathHelper.clamp(color.getMetadata(), 0, ItemDye.DYE_COLORS.length - 1)];
+			return color.getColorValue();
 		}, MatterOverdrive.BLOCKS.decorative_floor_tile);
 		Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler((state, p_186720_2_, pos, tintIndex) -> {
 			EnumDyeColor color = state.getValue(BlockDecorativeColored.COLOR);
-			return ItemDye.DYE_COLORS[MathHelper.clamp(color.getMetadata(), 0, ItemDye.DYE_COLORS.length - 1)];
+			return color.getColorValue();
 		}, MatterOverdrive.BLOCKS.decorative_floor_tiles);
 	}
 
@@ -516,21 +516,24 @@ public class RenderHandler {
 		}, MatterOverdrive.ITEMS.weapon_module_color);
 		FMLClientHandler.instance().getClient().getItemColors().registerItemColorHandler((stack, tintIndex) -> {
 			if (tintIndex == 0 && !stack.isEmpty() && stack.getItem() != null) {
-				return ItemDye.DYE_COLORS[MathHelper.clamp(stack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1)];
+				return EnumDyeColor.byMetadata(MathHelper.clamp(stack.getItemDamage(), 0,
+						ItemDye.DYE_COLORS.length - 1)).getColorValue();
 			} else {
 				return -1;
 			}
 		}, Item.getItemFromBlock(MatterOverdrive.BLOCKS.decorative_tritanium_plate_colored));
 		FMLClientHandler.instance().getClient().getItemColors().registerItemColorHandler((stack, tintIndex) -> {
 			if (tintIndex == 0 && !stack.isEmpty() && stack.getItem() != null) {
-				return ItemDye.DYE_COLORS[MathHelper.clamp(stack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1)];
+				return EnumDyeColor.byMetadata(MathHelper.clamp(stack.getItemDamage(), 0,
+						ItemDye.DYE_COLORS.length - 1)).getColorValue();
 			} else {
 				return -1;
 			}
 		}, Item.getItemFromBlock(MatterOverdrive.BLOCKS.decorative_floor_tile));
 		FMLClientHandler.instance().getClient().getItemColors().registerItemColorHandler((stack, tintIndex) -> {
 			if (tintIndex == 0 && !stack.isEmpty() && stack.getItem() != null) {
-				return ItemDye.DYE_COLORS[MathHelper.clamp(stack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1)];
+				return EnumDyeColor.byMetadata(MathHelper.clamp(stack.getItemDamage(), 0,
+						ItemDye.DYE_COLORS.length - 1)).getColorValue();
 			} else {
 				return -1;
 			}

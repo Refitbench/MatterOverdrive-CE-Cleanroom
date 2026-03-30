@@ -20,14 +20,18 @@ public class ElementMonitorItemPattern extends ElementItemPattern {
 		this.buttonHandler = buttonHandler;
 	}
 
+	private String getAmountDisplay() {
+		return amount == -1 ? "\u221e" : Integer.toString(amount);
+	}
+
 	@Override
 	public void drawForeground(int mouseX, int mouseY) {
 		RenderUtils.renderStack(posX + 3, posY + 3, 3, itemStack, true);
 
-		if (!expanded && amount > 0) {
+		if (!expanded && amount != 0) {
 			GlStateManager.pushMatrix();
 			GL11.glTranslatef(0, 0, 100);
-			gui.drawCenteredString(getFontRenderer(), Integer.toString(amount), posX + 17, posY + 12, 0xFFFFFF);
+			gui.drawCenteredString(getFontRenderer(), getAmountDisplay(), posX + 17, posY + 12, 0xFFFFFF);
 			GlStateManager.popMatrix();
 		}
 	}
@@ -47,7 +51,7 @@ public class ElementMonitorItemPattern extends ElementItemPattern {
 					Reference.COLOR_MATTER.getColor());
 			ApplyColor();
 			MOElementButton.HOVER_TEXTURE_DARK.render(posX + 2, posY + 22, 18, 18);
-			gui.drawCenteredString(getFontRenderer(), Integer.toString(amount), posX + 11, posY + 28,
+			gui.drawCenteredString(getFontRenderer(), getAmountDisplay(), posX + 11, posY + 28,
 					Reference.COLOR_MATTER.getColor());
 		}
 		ResetColor();
@@ -58,13 +62,21 @@ public class ElementMonitorItemPattern extends ElementItemPattern {
 			if (mouseX < posX + 22 && mouseY < posY + 22) {
 				setExpanded(false);
 			} else if (mouseX > posX + 24 && mouseY < posY + 22) {
-				amount = Math.min(amount
-						+ (Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) | Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) ? 16 : 1),
-						64);
+				if (amount == -1) {
+					amount = 1;
+				} else {
+					amount = Math.min(amount
+							+ (Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) | Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) ? 16 : 1),
+							64);
+				}
 			} else if (mouseX > posX + 24 && mouseY > posY + 24) {
-				amount = Math.max(amount
-						- (Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) | Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) ? 16 : 1),
-						0);
+				if (amount == 0) {
+					amount = -1;
+				} else if (amount != -1) {
+					amount = Math.max(amount
+							- (Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) | Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) ? 16 : 1),
+							0);
+				}
 			}
 		} else {
 			setExpanded(true);

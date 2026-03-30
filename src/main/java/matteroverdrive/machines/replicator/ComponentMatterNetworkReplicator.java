@@ -21,6 +21,9 @@ public class ComponentMatterNetworkReplicator extends MatterNetworkComponentClie
 
 	private void onReplicationRequest(MatterNetworkEventReplicate.Request request) {
 		if (!request.isAccepted()) {
+			if (request.amount == -1 && !TileEntityMachineReplicator.ALLOW_INFINITE_REPLICATION) {
+				return;
+			}
 			MatterNetworkTaskReplicatePattern replicatePattern = new MatterNetworkTaskReplicatePattern(request.pattern,
 					request.amount);
 			replicatePattern.setState(MatterNetworkTaskState.QUEUED);

@@ -8,6 +8,7 @@ import matteroverdrive.data.inventory.Slot;
 import matteroverdrive.handler.ConfigurationHandler;
 import matteroverdrive.machines.MOTileEntityMachine;
 import matteroverdrive.util.*;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -147,7 +148,7 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 		}
 
 		if (!returnDrops) {
-			dropBlockAsItem(world, pos, blockState, 0);
+			Block.spawnAsEntity(world, pos, blockItem);
 		} else {
 			MOInventoryHelper.insertItemStackIntoInventory(player.inventory, blockItem, EnumFacing.DOWN);
 		}

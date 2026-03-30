@@ -190,7 +190,9 @@ public class MatterOverdriveItems {
 		machine_casing = register(new MOBaseItem("machine_casing"));
 		s_magnet = register(new MOBaseItem("s_magnet"));
 		isolinear_circuit = register(new IsolinearCircuit("isolinear_circuit"));
-		matterItem = register(new MatterItem("matter"));
+		if (MatterOverdrive.CONFIG_HANDLER.showInDevItems) {
+			matterItem = register(new MatterItem("matter"));
+		}
 		forceFieldEmitter = register(new MOBaseItem("forcefield_emitter"));
 		weaponHandle = register(new MOBaseItem("weapon_handle"));
 		weaponReceiver = register(new MOBaseItem("weapon_receiver"));
@@ -254,7 +256,9 @@ public class MatterOverdriveItems {
 		spacetime_equalizer = register(new SpacetimeEqualizer("spacetime_equalizer"));
 		recordTransformation = register(new ItemRecordTransformation());
 		artifact = register(new MOBaseItem("artifact"));
-		trilithiumCrystal = register(new MOBaseItem("trilithium_crystal"));
+		if (MatterOverdrive.CONFIG_HANDLER.showInDevItems) {
+			trilithiumCrystal = register(new MOBaseItem("trilithium_crystal"));
+		}
 		Preconditions.checkNotNull(TOOL_MATERIAL_TRITANIUM).setRepairItem(new ItemStack(tritanium_ingot));
 		Preconditions.checkNotNull(ARMOR_MATERIAL_TRITANIUM).setRepairItem(new ItemStack(tritanium_ingot));
 		MOLog.info("Finished registering %d items", registeredCount);

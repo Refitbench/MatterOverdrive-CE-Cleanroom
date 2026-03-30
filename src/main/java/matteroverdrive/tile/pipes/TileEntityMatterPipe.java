@@ -2,6 +2,7 @@
 package matteroverdrive.tile.pipes;
 
 import matteroverdrive.MatterOverdrive;
+import matteroverdrive.api.matter.IMatterHandler;
 import matteroverdrive.api.transport.IGridNode;
 import matteroverdrive.data.MatterStorage;
 import matteroverdrive.data.transport.FluidPipeNetwork;
@@ -44,10 +45,62 @@ public class TileEntityMatterPipe extends TileEntityPipe implements IFluidPipe {
     private final Map<EnumFacing, BlockPos> transferTargets = new EnumMap<>(EnumFacing.class);
     private boolean transferTargetsDirty = true;
 
+    /**
+     * Back-pressure-aware IMatterHandler exposed to external pushers (e.g. decomposers).
+     * Only accepts matter up to the total capacity available in the network's downstream
+     * destinations, preventing the pipe buffer from absorbing matter that can never be
+     * delivered when all downstream targets (e.g. a full replicator) are saturated.
+     */
+    private final IMatterHandler incomingMatterHandler = new IMatterHandler() {
+        @Override
+        public int receiveMatter(int amount, boolean simulate) {
+            int downstream = getNetworkAvailableCapacity();
+            int alreadyBuffered = storage.getMatterStored();
+            int canAccept = Math.max(0, Math.min(amount, downstream - alreadyBuffered));
+            if (canAccept <= 0) return 0;
+            return storage.receiveMatter(canAccept, simulate);
+        }
+
+        @Override public int extractMatter(int amount, boolean simulate) { return storage.extractMatter(amount, simulate); }
+        @Override public int getMatterStored() { return storage.getMatterStored(); }
+        @Override public void setMatterStored(int amount) { storage.setMatterStored(amount); }
+        @Override public int getCapacity() { return storage.getCapacity(); }
+        @Override public void setCapacity(int capacity) { storage.setCapacity(capacity); }
+        @Override public int modifyMatterStored(int amount) { return storage.modifyMatterStored(amount); }
+        @Override public NBTTagCompound serializeNBT() { return storage.serializeNBT(); }
+        @Override public void deserializeNBT(NBTTagCompound nbt) { storage.deserializeNBT(nbt); }
+    };
+
     public TileEntityMatterPipe() {
         t = new TimeTracker();
         storage = new MatterStorage(32);
         this.transferSpeed = 10;
+    }
+
+    /**
+     * Returns the total matter capacity available across all downstream destination
+     * targets in this pipe's network. Used for back-pressure: the pipe refuses to
+     * accept more from a source (decomposer) than what the network can actually deliver.
+     */
+    private int getNetworkAvailableCapacity() {
+        if (fluidPipeNetwork == null) return 0;
+        int total = 0;
+        for (IFluidPipe pipe : fluidPipeNetwork.getNodes()) {
+            TileEntityMatterPipe networkPipe = (TileEntityMatterPipe) pipe;
+            if (networkPipe.transferTargetsDirty) {
+                networkPipe.rebuildTransferTargets();
+            }
+            for (Map.Entry<EnumFacing, BlockPos> entry : networkPipe.transferTargets.entrySet()) {
+                EnumFacing direction = entry.getKey();
+                TileEntity te = networkPipe.getWorld().getTileEntity(entry.getValue());
+                if (te != null && !te.isInvalid()
+                        && te.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, direction.getOpposite())) {
+                    total += te.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, direction.getOpposite())
+                            .fill(new FluidStack(OverdriveFluids.matterPlasma, Integer.MAX_VALUE / 2), false);
+                }
+            }
+        }
+        return total;
     }
 
     @Override
@@ -327,7 +380,7 @@ public class TileEntityMatterPipe extends TileEntityPipe implements IFluidPipe {
     @SuppressWarnings("unchecked")
     public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing) {
         if (capability == MatterOverdriveCapabilities.MATTER_HANDLER) {
-            return (T) storage;
+            return (T) incomingMatterHandler;
         }
         return super.getCapability(capability, facing);
     }

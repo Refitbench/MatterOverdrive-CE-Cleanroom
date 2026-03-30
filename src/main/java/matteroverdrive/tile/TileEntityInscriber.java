@@ -59,7 +59,6 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 				if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
 					this.inscribeTime++;
 					energyStorage.modifyEnergyStored(-getEnergyDrainPerTick());
-					UpdateClientPower();
 
 					if (this.inscribeTime >= getSpeed()) {
 						this.inscribeTime = 0;

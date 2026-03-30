@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 
 public class UpgradeSlot extends Slot {
@@ -18,6 +19,12 @@ public class UpgradeSlot extends Slot {
 	public UpgradeSlot(boolean isMainSlot, IUpgradeable upgradeable) {
 		super(isMainSlot);
 		this.upgradeable = upgradeable;
+	}
+
+	@Override
+	public void setItem(@Nonnull ItemStack item) {
+		super.setItem(item);
+		upgradeable.invalidateUpgradeCache();
 	}
 
 	@Override

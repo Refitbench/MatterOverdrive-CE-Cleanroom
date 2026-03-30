@@ -27,6 +27,7 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 	protected int energySlotID;
 	private int lastSyncedEnergy = Integer.MIN_VALUE;
 	private long nextEnergySyncTick = Long.MIN_VALUE;
+	private NetworkRegistry.TargetPoint energySyncTargetPoint;
 
 	public MOTileEntityMachineEnergy(int upgradeCount) {
 		super(upgradeCount);
@@ -62,17 +63,23 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 	}
 
 	protected void manageCharging() {
-		if (isCharging()) {
-			if (!this.world.isRemote) {
-				int emptyEnergySpace = getFreeEnergySpace();
-				int maxEnergyCanSpare = MOEnergyHelper.extractEnergyFromContainer(
-						this.inventory.getStackInSlot(energySlotID), emptyEnergySpace, true);
+		if (this.world.isRemote) {
+			return;
+		}
 
-				if (emptyEnergySpace > 0 && maxEnergyCanSpare > 0) {
-					getEnergyStorage().receiveEnergy(MOEnergyHelper.extractEnergyFromContainer(
-							this.inventory.getStackInSlot(energySlotID), emptyEnergySpace, false), false);
-				}
-			}
+		ItemStack chargeStack = this.inventory.getStackInSlot(energySlotID);
+		if (chargeStack.isEmpty() || !MOEnergyHelper.isEnergyContainerItem(chargeStack)) {
+			return;
+		}
+
+		int freeSpace = getFreeEnergySpace();
+		if (freeSpace <= 0) {
+			return;
+		}
+
+		int extracted = MOEnergyHelper.extractEnergyFromContainer(chargeStack, freeSpace, false);
+		if (extracted > 0) {
+			getEnergyStorage().receiveEnergy(extracted, false);
 		}
 	}
 
@@ -118,11 +125,17 @@ public abstract class MOTileEntityMachineEnergy extends MOTileEntityMachine {
 			}
 		}
 
-		MatterOverdrive.NETWORK.sendToAllAround(new PacketPowerUpdate(this),
-				new NetworkRegistry.TargetPoint(world.provider.getDimension(), getPos().getX(), getPos().getY(),
-						getPos().getZ(), ENERGY_CLIENT_SYNC_RANGE));
+		MatterOverdrive.NETWORK.sendToAllAround(new PacketPowerUpdate(this), getEnergySyncTargetPoint());
 		lastSyncedEnergy = currentEnergy;
 		nextEnergySyncTick = now + ENERGY_CLIENT_SYNC_INTERVAL_TICKS;
+	}
+
+	private NetworkRegistry.TargetPoint getEnergySyncTargetPoint() {
+		if (energySyncTargetPoint == null) {
+			energySyncTargetPoint = new NetworkRegistry.TargetPoint(world.provider.getDimension(),
+					getPos().getX(), getPos().getY(), getPos().getZ(), ENERGY_CLIENT_SYNC_RANGE);
+		}
+		return energySyncTargetPoint;
 	}
 
 	@Override

@@ -4,6 +4,7 @@ package matteroverdrive.machines.analyzer;
 import matteroverdrive.api.inventory.UpgradeTypes;
 import matteroverdrive.api.matter_network.IMatterNetworkClient;
 import matteroverdrive.api.matter_network.IMatterNetworkConnection;
+import matteroverdrive.blocks.BlockMatterAnalyzer;
 import matteroverdrive.api.network.IMatterNetworkDispatcher;
 import matteroverdrive.api.transport.IGridNode;
 import matteroverdrive.data.Inventory;
@@ -52,7 +53,7 @@ public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
 
 	@Override
 	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-		return (oldState.getBlock() != newState.getBlock());
+		return !(newState.getBlock() instanceof BlockMatterAnalyzer);
 	}
 
 	@Override

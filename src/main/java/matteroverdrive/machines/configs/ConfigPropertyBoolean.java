@@ -33,7 +33,9 @@ public class ConfigPropertyBoolean extends ConfigPropertyAbstract {
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
-		value = nbt.getBoolean(getUnlocalizedName());
+		if (nbt.hasKey(getUnlocalizedName())) {
+			value = nbt.getBoolean(getUnlocalizedName());
+		}
 	}
 
 	@Override

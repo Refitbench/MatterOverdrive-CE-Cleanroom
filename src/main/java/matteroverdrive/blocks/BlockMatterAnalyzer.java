@@ -64,21 +64,24 @@ public class BlockMatterAnalyzer extends MOMatterEnergyStorageBlock<TileEntityMa
 	
 	public static void setState(boolean active, World worldIn, BlockPos pos) {
 		IBlockState iblockstate = worldIn.getBlockState(pos);
-		TileEntity tileentity = worldIn.getTileEntity(pos);
-		keepInventory = true;
+		IBlockState newState;
 
 		if (active) {
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.matter_analyzer_running.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.matter_analyzer_running.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
+			newState = MatterOverdrive.BLOCKS.matter_analyzer_running.getDefaultState()
+					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION));
 		} else {
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.matter_analyzer.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.matter_analyzer.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
+			newState = MatterOverdrive.BLOCKS.matter_analyzer.getDefaultState()
+					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION));
 		}
 
+		if (iblockstate.getBlock() == newState.getBlock()
+				&& iblockstate.getValue(PROPERTY_DIRECTION) == newState.getValue(PROPERTY_DIRECTION)) {
+			return;
+		}
+
+		TileEntity tileentity = worldIn.getTileEntity(pos);
+		keepInventory = true;
+		worldIn.setBlockState(pos, newState, 3);
 		keepInventory = false;
 
 		if (tileentity != null) {

@@ -72,5 +72,9 @@ public class BlockReplicator extends MOMatterEnergyStorageBlock<TileEntityMachin
 				"The total replication cost of each matter value. The energy cost is calculated like so: (matterAmount*EnergyCost)");
 		ComponentTaskProcessingReplicator.REPLICATE_SPEED_PER_MATTER = config.getMachineInt(getTranslationKey(),
 				"speed.replication", 120, "The replication speed in ticks per matter value");
+		TileEntityMachineReplicator.ALLOW_INFINITE_REPLICATION = config.getMachineBool(getTranslationKey(),
+				"allow_infinite_replication", true,
+				"Allow pattern monitor requests to use infinite replication mode (amount -1). "
+						+ "When disabled, infinite requests are ignored and finite requests still work.");
 	}
 }

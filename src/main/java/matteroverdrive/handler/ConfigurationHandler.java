@@ -117,6 +117,7 @@ public class ConfigurationHandler {
 	public boolean starmapEnabled;
 	public boolean pylonEnabled;
 	public boolean showFilledItems;
+	public boolean showInDevItems;
 
 	public ConfigurationHandler(File configDir) {
 		this.configDir = configDir;
@@ -185,6 +186,8 @@ public class ConfigurationHandler {
 		showFilledItems = config.getBoolean("show_filled_items", CATEGORY_GENERAL, false,
 			"When false, filled variants of energy/matter items (batteries, containers) "
 				+ "are hidden from creative inventory and JEI. Empty variants still appear.");
+		showInDevItems = config.getBoolean("showInDevItems", CATEGORY_GENERAL, false,
+				"Shows items which are incomplete / have no function");
 
 		config.get(CATEGORY_WORLD_GEN, CATEGORY_WORLD_SPAWN_ORES, true,
 				"Should ores such as dilithium and tritanium ore spawn in the world. This applies for all ores !")
@@ -307,6 +310,7 @@ public class ConfigurationHandler {
 			starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_STARMAP, false, "");
 			pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_MACHINES, false, "");
 			showFilledItems = config.getBoolean("show_filled_items", CATEGORY_GENERAL, false, "");
+			showInDevItems = config.getBoolean("showInDevItems", CATEGORY_GENERAL, false, "");
 			config.save();
 		}
 

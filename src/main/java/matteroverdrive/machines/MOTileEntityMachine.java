@@ -1,6 +1,7 @@
 package matteroverdrive.machines;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +96,9 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 	private boolean activeState;
 	private boolean awoken;
 	private boolean forceClientUpdate;
+	// upgrade cache
+	private final EnumMap<UpgradeTypes, Double> upgradeCache = new EnumMap<>(UpgradeTypes.class);
+	private boolean upgradesDirty = true;
 
 	public MOTileEntityMachine(int upgradeCount) {
 		components = new ArrayList<>();
@@ -256,6 +260,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		}
 		if (categories.contains(MachineNBTCategory.INVENTORY)) {
 			inventory.readFromNBT(nbt);
+			invalidateUpgradeCache();
 		}
 		for (IMachineComponent component : components) {
 			component.readFromNBT(nbt, categories);
@@ -325,6 +330,7 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 				inventory.setInventorySlotContents(b0, new ItemStack(itemTag));
 			}
 			readCustomNBT(machineTag, EnumSet.of(MachineNBTCategory.CONFIGS, MachineNBTCategory.DATA));
+			invalidateUpgradeCache();
 			if (machineTag.hasKey("Owner", 8)) {
 				try {
 					this.owner = UUID.fromString(machineTag.getString("Owner"));
@@ -607,7 +613,20 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 		sendNBTToServer(EnumSet.of(MachineNBTCategory.CONFIGS), forceUpdate, true);
 	}
 
+	@Override
+	public void invalidateUpgradeCache() {
+		upgradesDirty = true;
+		upgradeCache.clear();
+	}
+
 	public double getUpgradeMultiply(UpgradeTypes type) {
+		if (!upgradesDirty) {
+			Double cached = upgradeCache.get(type);
+			if (cached != null) {
+				return cached;
+			}
+		}
+
 		double multiply = 1;
 
 		// check to see if the machine is affected by this type of Update
@@ -631,6 +650,8 @@ public abstract class MOTileEntityMachine extends MOTileEntity
 			}
 		}
 
+		upgradeCache.put(type, multiply);
+		upgradesDirty = false;
 		return multiply;
 	}
 

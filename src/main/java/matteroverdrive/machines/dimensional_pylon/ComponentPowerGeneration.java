@@ -89,7 +89,6 @@ public class ComponentPowerGeneration extends MachineComponentAbstract<TileEntit
 				&& machine.getEnergyStorage().getEnergyStored() < machine.getEnergyStorage().getMaxEnergyStored()) {
 			machine.getEnergyStorage().modifyEnergyStored(energyGenPerTick);
 			storage.modifyMatterStored(matterDrainPerSec);
-			machine.UpdateClientPower();
 		}
 	}
 

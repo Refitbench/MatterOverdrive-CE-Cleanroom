@@ -220,7 +220,6 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 				if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
 					this.cookTime++;
 					energyStorage.modifyEnergyStored(-getEnergyDrainPerTick());
-					UpdateClientPower();
 
 					if (this.cookTime >= getSpeed()) {
 						this.cookTime = 0;

@@ -48,7 +48,7 @@ public class BlockDecorativeColored extends BlockDecorative implements OreDictIt
 		if (itemstack != null) {
 			String name = infos.get(0);
 			String colorKey = EnumDyeColor
-					.byDyeDamage(MathHelper.clamp(itemstack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1))
+					.byMetadata(MathHelper.clamp(itemstack.getItemDamage(), 0, ItemDye.DYE_COLORS.length - 1))
 					.getTranslationKey();
 			// Convert camelCase to Title Case words: "lightBlue" -> "Light Blue"
 			String colorName = colorKey.replaceAll("([A-Z])", " $1");
@@ -69,8 +69,8 @@ public class BlockDecorativeColored extends BlockDecorative implements OreDictIt
 
 	@Override
 	public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> items) {
-		for (EnumDyeColor color : EnumDyeColor.values()) {
-			items.add(new ItemStack(this, 1, color.getMetadata()));
+		for (int meta = 0; meta < EnumDyeColor.values().length; meta++) {
+			items.add(new ItemStack(this, 1, EnumDyeColor.byMetadata(meta).getMetadata()));
 		}
 	}
 
