@@ -23,4 +23,7 @@ public interface IUpgradeable {
 	 * @return the upgrade handler.
 	 */
 	IUpgradeHandler getUpgradeHandler();
+
+	default void invalidateUpgradeCache() {
+	}
 }

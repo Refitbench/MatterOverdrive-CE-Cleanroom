@@ -54,7 +54,6 @@ public class TileEntityMachineSpacetimeAccelerator extends MOTileEntityMachineMa
 		if (isActive()) {
 			if (!world.isRemote) {
 				energyStorage.modifyEnergyStored(-getEnergyUsage());
-				UpdateClientPower();
 				if (timeTracker.hasDelayPassed(world, getSpeed())) {
 					manageAccelerations();
 					manageUpgrades();

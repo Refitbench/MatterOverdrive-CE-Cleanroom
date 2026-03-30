@@ -54,7 +54,6 @@ public class ComponentTaskProcessingAnalyzer extends
 
 		if (isAnalyzing() && hasEnoughPower()) {
 			machine.getEnergyStorage().extractEnergy(getEnergyDrainPerTick(), false);
-			machine.UpdateClientPower();
 
 			if (analyzeTime < getSpeed()) {
 				analyzeTime++;
