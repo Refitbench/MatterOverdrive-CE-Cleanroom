@@ -95,6 +95,8 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     private double cachedRealMass;
     private float cachedBaseBreakStrength;
     private AxisAlignedBB cachedGravitationBB;
+    private double cachedRangeSq;
+    private Vec3d cachedCenter;
 
     private BlockPos blockPos;
     private int scanCursor = 0;
@@ -189,50 +191,49 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 
 	public void manageEntityGravitation(World world) {
-		if (!GRAVITATION) {
-			return;
-		}
-
+		if (!GRAVITATION) return;
 		if (cachedGravitationBB == null) return;
+
+		double eventHorizon = getEventHorizon(); // ensures cache is fresh
 		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, cachedGravitationBB);
-		Vec3d blockPos = new Vec3d(getPos()).add(0.5, 0.5, 0.5);
-		double eventHorizon = getEventHorizon();
 
 		for (Entity entity : entities) {
 			if (entity.isDead) continue;
-
 			if (entity instanceof IGravityEntity) {
-				if (!((IGravityEntity) entity).isAffectedByAnomaly(this)) {
-					continue;
-				}
+				if (!((IGravityEntity) entity).isAffectedByAnomaly(this)) continue;
 			}
-			Vec3d entityPos = entity.getPositionVector();
 
-			// pos.y += entity.getEyeHeight();
-			double distanceSq = entityPos.squareDistanceTo(blockPos);
+			Vec3d entityPos = entity.getPositionVector();
+			double distanceSq = entityPos.squareDistanceTo(cachedCenter);
+			if (distanceSq > cachedRangeSq) continue; // sphere cull: skip cube-corner entities
+
 			double acceleration = getAcceleration(distanceSq);
-			Vec3d dir = blockPos.subtract(entityPos).normalize();
-			dir = new Vec3d(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
-			if (intersectsAnomaly(entityPos, dir, blockPos, eventHorizon)) {
+			Vec3d scaledDir = cachedCenter.subtract(entityPos).normalize();
+			scaledDir = new Vec3d(scaledDir.x * acceleration, scaledDir.y * acceleration, scaledDir.z * acceleration);
+
+			if (intersectsAnomaly(entityPos, scaledDir, cachedCenter, eventHorizon)) {
 				consume(entity);
 			}
 
-			if (entity instanceof EntityPlayer) // Players handle this clientside, no need to run on the server for no reason
-				continue;
-
-			if (entity instanceof EntityLivingBase) {
-				boolean hasEqualizer = false;
-				for (ItemStack i : entity.getArmorInventoryList()) {
-					if (!i.isEmpty() && i.getItem() instanceof SpacetimeEqualizer) {
-						hasEqualizer = true;
-						break;
-					}
-				}
-				if (hasEqualizer) continue;
-			}
-
-			entity.addVelocity(dir.x, dir.y, dir.z);
+			applyGravitationToEntity(entity, scaledDir);
 		}
+	}
+
+	private void applyGravitationToEntity(Entity entity, Vec3d scaledDir) {
+		if (entity instanceof EntityPlayer) return; // Players handle velocity clientside
+
+		if (entity instanceof EntityLivingBase) {
+			boolean hasEqualizer = false;
+			for (ItemStack i : entity.getArmorInventoryList()) {
+				if (!i.isEmpty() && i.getItem() instanceof SpacetimeEqualizer) {
+					hasEqualizer = true;
+					break;
+				}
+			}
+			if (hasEqualizer) return;
+		}
+
+		entity.addVelocity(scaledDir.x, scaledDir.y, scaledDir.z);
 	}
 
 	boolean intersectsAnomaly(Vec3d origin, Vec3d dir, Vec3d anomaly, double radius) {
@@ -885,12 +886,15 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
         cachedRealMassUnsuppressed = Math.log1p(Math.max(mass, 0) * STREHGTH_MULTIPLYER);
         cachedRealMass = cachedRealMassUnsuppressed * suppression;
         cachedBaseBreakStrength = (float) cachedRealMass * 4 * suppression;
-        double cachedRange = Math.sqrt(cachedRealMass * (G / 0.01)) + 1;
+        double maxRange = Math.sqrt(cachedRealMass * (G / 0.01));
+        cachedRangeSq = maxRange * maxRange;
         BlockPos p = getPos();
         if (p != null) {
+            double cx = p.getX() + 0.5, cy = p.getY() + 0.5, cz = p.getZ() + 0.5;
+            cachedCenter = new Vec3d(cx, cy, cz);
             cachedGravitationBB = new AxisAlignedBB(
-                p.getX() - cachedRange, p.getY() - cachedRange, p.getZ() - cachedRange,
-                p.getX() + cachedRange, p.getY() + cachedRange, p.getZ() + cachedRange);
+                    cx - maxRange - 1, cy - maxRange - 1, cz - maxRange - 1,
+                    cx + maxRange + 1, cy + maxRange + 1, cz + maxRange + 1);
         }
         derivedMassCacheDirty = false;
     }
