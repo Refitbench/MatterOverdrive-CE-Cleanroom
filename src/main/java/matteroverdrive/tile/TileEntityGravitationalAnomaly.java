@@ -11,8 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.Nullable;
 
 import org.apache.logging.log4j.Level;
@@ -96,6 +94,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     private double cachedRealMassUnsuppressed;
     private double cachedRealMass;
     private float cachedBaseBreakStrength;
+    private AxisAlignedBB cachedGravitationBB;
 
     private BlockPos blockPos;
     private int scanCursor = 0;
@@ -194,13 +193,14 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 			return;
 		}
 
-		double range = getMaxRange() + 1;
-		AxisAlignedBB bb = new AxisAlignedBB(getPos().getX() - range, getPos().getY() - range, getPos().getZ() - range,
-				getPos().getX() + range, getPos().getY() + range, getPos().getZ() + range);
-		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, bb);
+		if (cachedGravitationBB == null) return;
+		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, cachedGravitationBB);
 		Vec3d blockPos = new Vec3d(getPos()).add(0.5, 0.5, 0.5);
+		double eventHorizon = getEventHorizon();
 
 		for (Entity entity : entities) {
+			if (entity.isDead) continue;
+
 			if (entity instanceof IGravityEntity) {
 				if (!((IGravityEntity) entity).isAffectedByAnomaly(this)) {
 					continue;
@@ -210,8 +210,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 			// pos.y += entity.getEyeHeight();
 			double distanceSq = entityPos.squareDistanceTo(blockPos);
-		double acceleration = getAcceleration(distanceSq);
-			double eventHorizon = getEventHorizon();
+			double acceleration = getAcceleration(distanceSq);
 			Vec3d dir = blockPos.subtract(entityPos).normalize();
 			dir = new Vec3d(dir.x * acceleration, dir.y * acceleration, dir.z * acceleration);
 			if (intersectsAnomaly(entityPos, dir, blockPos, eventHorizon)) {
@@ -222,13 +221,14 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 				continue;
 
 			if (entity instanceof EntityLivingBase) {
-				AtomicBoolean se = new AtomicBoolean(false);
-				entity.getArmorInventoryList().forEach(i -> {
-					if (!i.isEmpty() && i.getItem() instanceof SpacetimeEqualizer)
-						se.set(true);
-				});
-				if (se.get())
-					continue;
+				boolean hasEqualizer = false;
+				for (ItemStack i : entity.getArmorInventoryList()) {
+					if (!i.isEmpty() && i.getItem() instanceof SpacetimeEqualizer) {
+						hasEqualizer = true;
+						break;
+					}
+				}
+				if (hasEqualizer) continue;
 			}
 
 			entity.addVelocity(dir.x, dir.y, dir.z);
@@ -885,6 +885,13 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
         cachedRealMassUnsuppressed = Math.log1p(Math.max(mass, 0) * STREHGTH_MULTIPLYER);
         cachedRealMass = cachedRealMassUnsuppressed * suppression;
         cachedBaseBreakStrength = (float) cachedRealMass * 4 * suppression;
+        double cachedRange = Math.sqrt(cachedRealMass * (G / 0.01)) + 1;
+        BlockPos p = getPos();
+        if (p != null) {
+            cachedGravitationBB = new AxisAlignedBB(
+                p.getX() - cachedRange, p.getY() - cachedRange, p.getZ() - cachedRange,
+                p.getX() + cachedRange, p.getY() + cachedRange, p.getZ() + cachedRange);
+        }
         derivedMassCacheDirty = false;
     }
 
