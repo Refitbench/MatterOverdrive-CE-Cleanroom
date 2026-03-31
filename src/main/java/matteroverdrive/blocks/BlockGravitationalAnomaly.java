@@ -188,5 +188,9 @@ public class BlockGravitationalAnomaly extends MOBlockContainer<TileEntityGravit
 				ConfigurationHandler.KEY_GRAVITATIONAL_ANOMALY_IDLE_SCAN_TICKS, cat, 60,
 				"How many ticks the anomaly waits before re-scanning after a full sweep found nothing to break. "
 				+ "Default 60 (~3 seconds). Reduces CPU when the anomaly has consumed all nearby blocks.");
+		TileEntityGravitationalAnomaly.ENTITY_SCAN_RATE = config.getInt(
+				ConfigurationHandler.KEY_GRAVITATIONAL_ANOMALY_ENTITY_SCAN_RATE, cat, 10,
+				"How often (in ticks) the anomaly rescans for nearby entities. Force is still applied every tick. "
+				+ "Higher values reduce CPU cost at the expense of slightly delayed pickup of newly entered entities.");
 	}
 }

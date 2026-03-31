@@ -99,6 +99,7 @@ public class ConfigurationHandler {
 	public static final String KEY_GRAVITATIONAL_ANOMALY_BLOCKS_PER_BATCH = "blocks per batch";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_BATCH_TICK_RATE = "batch tick rate";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_IDLE_SCAN_TICKS = "idle scan ticks";
+	public static final String KEY_GRAVITATIONAL_ANOMALY_ENTITY_SCAN_RATE = "entity scan rate";
 	public static final String KEY_HOUSE = "generate house";
 	public static final String KEY_ANDROID_HOUSE_SPAWN_CHANCE = "android house spawn chance";
 	public static final String KEY_SAND_PIT_SPAWN_CHANCE = "sand pit spawn chance";

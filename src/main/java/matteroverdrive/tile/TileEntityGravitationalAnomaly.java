@@ -76,6 +76,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     public static int SCAN_BATCH_SIZE = 256;
     public static int BLOCKS_PER_BATCH = 1;
     public static int BATCH_TICK_RATE = 2;
+    public static int ENTITY_SCAN_RATE = 10;
     public static int IDLE_SCAN_TICKS = 40;
     public static final double STREHGTH_MULTIPLYER = 0.00001;
     public static final double G = 6.67384;
@@ -103,6 +104,8 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     private int scanRange = -1;
     private int scanIdleTimer = 0;
     private int breakBatchTimer = 0;
+    private List<Entity> cachedEntityList = Collections.emptyList();
+    private int entityScanTimer = 0;
     private List<BlockPos> currentOffsets = Collections.emptyList();
     private List<ScanEntry> scanBuffer = new ArrayList<>();
     private Queue<ScanEntry> breakQueue = new ArrayDeque<>();
@@ -195,9 +198,12 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 		if (cachedGravitationBB == null) return;
 
 		double eventHorizon = getEventHorizon(); // ensures cache is fresh
-		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, cachedGravitationBB);
+		if (++entityScanTimer >= ENTITY_SCAN_RATE) {
+			entityScanTimer = 0;
+			cachedEntityList = world.getEntitiesWithinAABB(Entity.class, cachedGravitationBB);
+		}
 
-		for (Entity entity : entities) {
+		for (Entity entity : cachedEntityList) {
 			if (entity.isDead) continue;
 			if (entity instanceof IGravityEntity) {
 				if (!((IGravityEntity) entity).isAffectedByAnomaly(this)) continue;
@@ -896,6 +902,8 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
                     cx - maxRange - 1, cy - maxRange - 1, cz - maxRange - 1,
                     cx + maxRange + 1, cy + maxRange + 1, cz + maxRange + 1);
         }
+        cachedEntityList = Collections.emptyList();
+        entityScanTimer = ENTITY_SCAN_RATE; // force rescan on next tick after mass/suppression change
         derivedMassCacheDirty = false;
     }
 
