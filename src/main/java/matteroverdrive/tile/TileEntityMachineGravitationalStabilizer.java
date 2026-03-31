@@ -49,6 +49,9 @@ public class TileEntityMachineGravitationalStabilizer extends MOTileEntityMachin
 		super.update();
 
 		if (world.isRemote) {
+			if (hit == null) {
+				hit = seacrhForAnomalies(world);
+			}
 			spawnParticles(world);
 		} else {
 			if (getRedstoneActive()) {
