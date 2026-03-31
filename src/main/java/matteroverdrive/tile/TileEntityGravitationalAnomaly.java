@@ -78,6 +78,9 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     public static int BATCH_TICK_RATE = 2;
     public static int ENTITY_SCAN_RATE = 10;
     public static int IDLE_SCAN_TICKS = 40;
+    public static int SCAN_BAND_INNER_PCT = 15; // % of SCAN_BATCH_SIZE scanned per tick for inner band
+    public static int SCAN_BAND_MID_PCT   = 30; // % of SCAN_BATCH_SIZE scanned per tick for mid band
+                                                // outer band gets the remaining (100 - inner - mid)%
     public static final double STREHGTH_MULTIPLYER = 0.00001;
     public static final double G = 6.67384;
     public static final double G2 = G * 2;
@@ -100,15 +103,26 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     private Vec3d cachedCenter;
 
     private BlockPos blockPos;
-    private int scanCursor = 0;
     private int scanRange = -1;
-    private int scanIdleTimer = 0;
     private int breakBatchTimer = 0;
     private List<Entity> cachedEntityList = Collections.emptyList();
     private int entityScanTimer = 0;
     private List<BlockPos> currentOffsets = Collections.emptyList();
-    private List<ScanEntry> scanBuffer = new ArrayList<>();
-    private Queue<ScanEntry> breakQueue = new ArrayDeque<>();
+    // band scanner state: A=inner(0-25%), B=mid(25-55%), C=outer(55-100%)
+    private int bandSplitA = 0;
+    private int bandSplitB = 0;
+    private int bandCursorA = 0;
+    private int bandCursorB = 0;
+    private int bandCursorC = 0;
+    private int bandIdleA = 0;
+    private int bandIdleB = 0;
+    private int bandIdleC = 0;
+    private List<ScanEntry> bandBufferA = new ArrayList<>();
+    private List<ScanEntry> bandBufferB = new ArrayList<>();
+    private List<ScanEntry> bandBufferC = new ArrayList<>();
+    private Queue<ScanEntry> bandQueueA = new ArrayDeque<>();
+    private Queue<ScanEntry> bandQueueB = new ArrayDeque<>();
+    private Queue<ScanEntry> bandQueueC = new ArrayDeque<>();
 
     //region Constructors
     public TileEntityGravitationalAnomaly()
@@ -409,23 +423,32 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 	}
 
 	private void scanBlockLayer(World world) {
-		if (!BLOCK_DESTRUCTION) {
-			return;
-		}
+		if (!BLOCK_DESTRUCTION) return;
 
 		int range = (int) Math.floor(getBlockBreakRange());
 		if (range != scanRange) {
-			scanCursor = 0;
 			scanRange = range;
-			scanIdleTimer = 0;
 			currentOffsets = buildSphereOffsets(range);
+			int sz = currentOffsets.size();
+			double innerLimitSq = range * 0.25 * range * 0.25;
+			double midLimitSq   = range * 0.55 * range * 0.55;
+			bandSplitA = 0;
+			for (int i = 0; i < sz; i++) {
+				BlockPos o = currentOffsets.get(i);
+				int dSq = o.getX() * o.getX() + o.getY() * o.getY() + o.getZ() * o.getZ();
+				if (dSq <= innerLimitSq) bandSplitA = i + 1; else break;
+			}
+			bandSplitB = bandSplitA;
+			for (int i = bandSplitA; i < sz; i++) {
+				BlockPos o = currentOffsets.get(i);
+				int dSq = o.getX() * o.getX() + o.getY() * o.getY() + o.getZ() * o.getZ();
+				if (dSq <= midLimitSq) bandSplitB = i + 1; else break;
+			}
+			bandCursorA = 0;         bandIdleA = 0; bandBufferA.clear(); bandQueueA.clear();
+			bandCursorB = bandSplitA; bandIdleB = 0; bandBufferB.clear(); bandQueueB.clear();
+			bandCursorC = bandSplitB; bandIdleC = 0; bandBufferC.clear(); bandQueueC.clear();
 		}
 		if (range <= 0) return;
-
-		if (scanIdleTimer > 0) {
-			scanIdleTimer--;
-			return;
-		}
 
 		List<BlockPos> offsets = currentOffsets;
 		int size = offsets.size();
@@ -433,56 +456,97 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 		double eventHorizon = getEventHorizon();
 		int ax = getPos().getX(), ay = getPos().getY(), az = getPos().getZ();
-		int end = Math.min(scanCursor + SCAN_BATCH_SIZE, size);
+		int innerBatch = Math.max(1, SCAN_BATCH_SIZE * SCAN_BAND_INNER_PCT / 100);
+		int midBatch   = Math.max(1, SCAN_BATCH_SIZE * SCAN_BAND_MID_PCT / 100);
+		int outerBatch = Math.max(1, SCAN_BATCH_SIZE * (100 - SCAN_BAND_INNER_PCT - SCAN_BAND_MID_PCT) / 100);
+		int midIdle    = Math.max(1, IDLE_SCAN_TICKS / 2);  // mid re-scans at half rate
+		int outerIdle  = IDLE_SCAN_TICKS;                   // outer uses full idle
 
-		for (int i = scanCursor; i < end; i++) {
+		// Band A: inner [0, bandSplitA) — no idle, scans continuously
+		if (bandSplitA > 0) {
+			int end = Math.min(bandCursorA + innerBatch, bandSplitA);
+			scanOffsetRange(offsets, bandCursorA, end, ax, ay, az, eventHorizon, world, bandBufferA, range);
+			bandCursorA = end;
+			if (bandCursorA >= bandSplitA) {
+				if (!bandBufferA.isEmpty()) { bandQueueA = new ArrayDeque<>(bandBufferA); }
+				bandBufferA.clear();
+				bandCursorA = 0;
+			}
+		}
+
+		// Band B: mid [bandSplitA, bandSplitB)
+		if (bandSplitB > bandSplitA) {
+			if (bandIdleB > 0) {
+				bandIdleB--;
+			} else {
+				int end = Math.min(bandCursorB + midBatch, bandSplitB);
+				scanOffsetRange(offsets, bandCursorB, end, ax, ay, az, eventHorizon, world, bandBufferB, range);
+				bandCursorB = end;
+				if (bandCursorB >= bandSplitB) {
+					if (bandBufferB.isEmpty()) { bandIdleB = midIdle; }
+					else { bandQueueB = new ArrayDeque<>(bandBufferB); }
+					bandBufferB.clear();
+					bandCursorB = bandSplitA;
+				}
+			}
+		}
+
+		// Band C: outer [bandSplitB, size)
+		if (size > bandSplitB) {
+			if (bandIdleC > 0) {
+				bandIdleC--;
+			} else {
+				int end = Math.min(bandCursorC + outerBatch, size);
+				scanOffsetRange(offsets, bandCursorC, end, ax, ay, az, eventHorizon, world, bandBufferC, range);
+				bandCursorC = end;
+				if (bandCursorC >= size) {
+					if (bandBufferC.isEmpty()) { bandIdleC = outerIdle; }
+					else { bandQueueC = new ArrayDeque<>(bandBufferC); }
+					bandBufferC.clear();
+					bandCursorC = bandSplitB;
+				}
+			}
+		}
+	}
+
+	private void scanOffsetRange(List<BlockPos> offsets, int from, int to,
+			int ax, int ay, int az, double eventHorizon, World world, List<ScanEntry> buffer, int range) {
+		for (int i = from; i < to; i++) {
 			BlockPos offset = offsets.get(i);
 			BlockPos scanPos = new BlockPos(ax + offset.getX(), ay + offset.getY(), az + offset.getZ());
 			IBlockState blockState = world.getBlockState(scanPos);
 			Block block = blockState.getBlock();
 			if (block == Blocks.AIR) continue;
-
 			int ox = offset.getX(), oy = offset.getY(), oz = offset.getZ();
 			double distance = Math.sqrt(ox * ox + oy * oy + oz * oz);
 			float hardness = blockState.getBlockHardness(world, scanPos);
-			if (block instanceof IFluidBlock || block instanceof BlockLiquid) {
-				hardness = 1;
-			}
+			if (block instanceof IFluidBlock || block instanceof BlockLiquid) hardness = 1;
 			float strength = getBreakStrength((float) distance, range);
 			if (hardness >= 0 && (distance < eventHorizon || hardness < strength)) {
-				scanBuffer.add(new ScanEntry(scanPos, blockState));
+				buffer.add(new ScanEntry(scanPos, blockState));
 			}
-		}
-
-		scanCursor = end;
-		if (scanCursor >= size) {
-			if (scanBuffer.isEmpty()) {
-				scanIdleTimer = IDLE_SCAN_TICKS;
-			} else {
-				breakQueue = new ArrayDeque<>(scanBuffer);
-			}
-			scanBuffer.clear();
-			scanCursor = 0;
 		}
 	}
 
 	private void breakNextQueuedBlocks(World world) {
-		if (breakQueue.isEmpty()) return;
+		if (bandQueueA.isEmpty() && bandQueueB.isEmpty() && bandQueueC.isEmpty()) return;
 
 		int range = (int) Math.floor(getBlockBreakRange());
 		double eventHorizon = getEventHorizon();
 		int broken = 0;
+		broken = drainBreakQueue(bandQueueA, world, range, eventHorizon, broken);
+		broken = drainBreakQueue(bandQueueB, world, range, eventHorizon, broken);
+		drainBreakQueue(bandQueueC, world, range, eventHorizon, broken);
+	}
 
-		while (broken < BLOCKS_PER_BATCH && !breakQueue.isEmpty()) {
-			ScanEntry entry = breakQueue.poll();
-
+	private int drainBreakQueue(Queue<ScanEntry> queue, World world, int range, double eventHorizon, int broken) {
+		while (broken < BLOCKS_PER_BATCH && !queue.isEmpty()) {
+			ScanEntry entry = queue.poll();
 			IBlockState current = world.getBlockState(entry.pos);
 			if (current.getBlock() == Blocks.AIR) continue;
 			if (current.getBlock() != entry.scannedState.getBlock()) continue;
-
 			if (cleanFlowingLiquids(current, entry.pos)) { broken++; continue; }
 			if (cleanLiquids(current, entry.pos)) { broken++; continue; }
-
 			try {
 				double distance = Math.sqrt(entry.pos.distanceSq(getPos()));
 				float strength = getBreakStrength((float) distance, range);
@@ -493,6 +557,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 			}
 			broken++;
 		}
+		return broken;
 	}
 
     //region Consume Type Handlers
@@ -874,11 +939,10 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
         {
             suppression = newSuppression;
             derivedMassCacheDirty = true;
-            scanBuffer.clear();
-            breakQueue.clear();
-            scanCursor = 0;
             scanRange = -1;
-            scanIdleTimer = 0;
+            bandBufferA.clear(); bandQueueA.clear();
+            bandBufferB.clear(); bandQueueB.clear();
+            bandBufferC.clear(); bandQueueC.clear();
             markDirty();
         }
     }
