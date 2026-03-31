@@ -6,12 +6,12 @@ import matteroverdrive.blocks.includes.MOBlock;
 import matteroverdrive.client.data.Color;
 import matteroverdrive.machines.fusionReactorController.TileEntityMachineFusionReactorController;
 import matteroverdrive.util.RenderUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec3d;
+
+import javax.annotation.Nonnull;
 
 import java.text.DecimalFormat;
 
@@ -24,27 +24,31 @@ public class TileEntityRendererFusionReactorController
 	}
 
 	@Override
-	public void render(TileEntityMachineFusionReactorController controller, double x, double y, double z, float ticks,
+	@SuppressWarnings("null")
+	public void render(@Nonnull TileEntityMachineFusionReactorController controller, double x, double y, double z, float ticks,
 			int destoryStage, float a) {
 		if (!controller.shouldRender())
 			return;
 		if (!controller.isValidStructure()) {
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(x, y, z);
+			EnumFacing direction = getWorld().getBlockState(controller.getPos()).getValue(MOBlock.PROPERTY_DIRECTION);
 
 			for (int i = 0; i < TileEntityMachineFusionReactorController.positionsCount; i++) {
-				Vec3d pos = controller.getPosition(i,
-						getWorld().getBlockState(controller.getPos()).getValue(MOBlock.PROPERTY_DIRECTION));
+				Vec3d pos = controller.getPosition(i, direction);
 
-				GlStateManager.pushMatrix();
-				GlStateManager.translate(pos.x, pos.y, pos.z);
-				GlStateManager.enableBlend();
-				GlStateManager.blendFunc(GL_ONE, GL_ONE);
-				bindTexture(TileEntityRendererPatternMonitor.screenTextureBack);
-				GlStateManager.translate(0.1, 0.1, 0.1);
-				RenderUtils.drawCube(0.8, 0.8, 0.8, Reference.COLOR_HOLO);
-				GlStateManager.disableBlend();
-				GlStateManager.popMatrix();
+				if (TileEntityMachineFusionReactorController.blocks[i] == 255) {
+					for (int offset = -TileEntityMachineFusionReactorController.MAX_GRAVITATIONAL_ANOMALY_DISTANCE;
+							offset <= TileEntityMachineFusionReactorController.MAX_GRAVITATIONAL_ANOMALY_DISTANCE; offset++) {
+						renderHologramCube(controller.getRelativePosition(
+								TileEntityMachineFusionReactorController.positions[i * 2],
+								offset,
+								TileEntityMachineFusionReactorController.positions[(i * 2) + 1],
+								direction));
+					}
+				} else {
+					renderHologramCube(pos);
+				}
 
 			}
 			GlStateManager.popMatrix();
@@ -53,6 +57,20 @@ public class TileEntityRendererFusionReactorController
 		renderInfo(x, y, z, controller);
 	}
 
+	@SuppressWarnings("null")
+	private void renderHologramCube(Vec3d pos) {
+		GlStateManager.pushMatrix();
+		GlStateManager.translate(pos.x, pos.y, pos.z);
+		GlStateManager.enableBlend();
+		GlStateManager.blendFunc(GL_ONE, GL_ONE);
+		bindTexture(TileEntityRendererPatternMonitor.screenTextureBack);
+		GlStateManager.translate(0.1, 0.1, 0.1);
+		RenderUtils.drawCube(0.8, 0.8, 0.8, Reference.COLOR_HOLO);
+		GlStateManager.disableBlend();
+		GlStateManager.popMatrix();
+	}
+
+	@SuppressWarnings("null")
 	private void renderInfo(double x, double y, double z, TileEntityMachineFusionReactorController controller) {
 		EnumFacing side = controller.getWorld().getBlockState(controller.getPos()).getValue(MOBlock.PROPERTY_DIRECTION);
 
@@ -86,7 +104,4 @@ public class TileEntityRendererFusionReactorController
 
 	}
 
-	private FontRenderer fontRenderer() {
-		return Minecraft.getMinecraft().fontRenderer;
-	}
 }

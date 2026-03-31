@@ -164,26 +164,30 @@ public class TileEntityMachineFusionReactorController extends MOTileEntityMachin
 
 	public Vec3d getPosition(int i, EnumFacing facing) {
 		if (i < positionsCount) {
-			EnumFacing back = facing.getOpposite();
-			Vec3d pos = new Vec3d(TileEntityMachineFusionReactorController.positions[i * 2], 0,
-					TileEntityMachineFusionReactorController.positions[(i * 2) + 1]);
-
-			if (back == EnumFacing.NORTH) {
-				pos = pos.rotateYaw((float) Math.PI);
-			} else if (back == EnumFacing.WEST) {
-				pos = pos.rotateYaw((float) (Math.PI + Math.PI / 2));
-			} else if (back == EnumFacing.EAST) {
-				pos = pos.rotatePitch((float) (Math.PI / 2));
-			} else if (back == EnumFacing.UP) {
-				pos = pos.rotatePitch((float) (Math.PI / 2));
-			} else if (back == EnumFacing.DOWN) {
-				pos = pos.rotatePitch((float) (Math.PI + Math.PI / 2));
-
-			}
-
-			return pos;
+			return getRelativePosition(TileEntityMachineFusionReactorController.positions[i * 2], 0,
+					TileEntityMachineFusionReactorController.positions[(i * 2) + 1], facing);
 		}
 		return null;
+	}
+
+	public Vec3d getRelativePosition(double x, double y, double z, EnumFacing facing) {
+		EnumFacing back = facing.getOpposite();
+		Vec3d pos = new Vec3d(x, y, z);
+
+		if (back == EnumFacing.NORTH) {
+			pos = pos.rotateYaw((float) Math.PI);
+		} else if (back == EnumFacing.WEST) {
+			pos = pos.rotateYaw((float) (Math.PI + Math.PI / 2));
+		} else if (back == EnumFacing.EAST) {
+			pos = pos.rotateYaw((float) (Math.PI / 2));
+		} else if (back == EnumFacing.UP) {
+			pos = pos.rotatePitch((float) (Math.PI / 2));
+		} else if (back == EnumFacing.DOWN) {
+			pos = pos.rotatePitch((float) (Math.PI + Math.PI / 2));
+
+		}
+
+		return pos;
 	}
 
 	@Override
