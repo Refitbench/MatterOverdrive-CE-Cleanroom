@@ -103,6 +103,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private EntityPlayer player;
 	private IBioticStat activeStat;
 	private NBTTagCompound unlocked;
+	private final Map<String, Integer> unlockedLevels = new HashMap<>();
 	private int maxEnergy;
 	private boolean isAndroid;
 	private boolean bionicSlotsDirty = true;
@@ -304,6 +305,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			}
 			if (dataTypes.contains(DataType.STATS)) {
 				unlocked = prop.getCompoundTag(NBT_STATS);
+				rebuildUnlockedCache();
 			}
 			if (dataTypes.contains(DataType.EFFECTS)) {
 				NBTTagCompound effects = prop.getCompoundTag("effects");
@@ -373,15 +375,21 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public boolean isUnlocked(IBioticStat stat, int level) {
-		return unlocked.hasKey(stat.getUnlocalizedName()) && unlocked.getInteger(stat.getUnlocalizedName()) >= level;
+		// Use the HashMap cache for O(1) lookup instead of NBT string traversal.
+		// Sentinel -1 means absent: ensures level=0 checks don't falsely return true.
+		return unlockedLevels.getOrDefault(stat.getUnlocalizedName(), -1) >= level;
 	}
 
 	@Override
 	public int getUnlockedLevel(IBioticStat stat) {
-		if (unlocked.hasKey(stat.getUnlocalizedName())) {
-			return unlocked.getInteger(stat.getUnlocalizedName());
+		return unlockedLevels.getOrDefault(stat.getUnlocalizedName(), 0);
+	}
+
+	private void rebuildUnlockedCache() {
+		unlockedLevels.clear();
+		for (Object key : unlocked.getKeySet()) {
+			unlockedLevels.put(key.toString(), unlocked.getInteger(key.toString()));
 		}
-		return 0;
 	}
 
 	public boolean tryUnlock(IBioticStat stat, int level) {
@@ -396,6 +404,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	public void unlock(IBioticStat stat, int level) {
 		clearAllStatAttributeModifiers();
 		this.unlocked.setInteger(stat.getUnlocalizedName(), level);
+		unlockedLevels.put(stat.getUnlocalizedName(), level);
 		stat.onUnlock(this, level);
 		sync(EnumSet.of(DataType.STATS));
 		manageStatAttributeModifiers();
@@ -500,6 +509,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	public int resetUnlocked() {
 		int xp = getResetXPRequired();
 		this.unlocked = new NBTTagCompound();
+		unlockedLevels.clear();
 		sync(EnumSet.of(DataType.STATS));
 		clearAllStatAttributeModifiers();
 		return xp;
@@ -520,6 +530,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			int level = unlocked.getInteger(stat.getUnlocalizedName());
 			stat.onUnlearn(this, level);
 			unlocked.removeTag(stat.getUnlocalizedName());
+			unlockedLevels.remove(stat.getUnlocalizedName());
 			sync(EnumSet.of(DataType.STATS));
 			manageStatAttributeModifiers();
 		}
