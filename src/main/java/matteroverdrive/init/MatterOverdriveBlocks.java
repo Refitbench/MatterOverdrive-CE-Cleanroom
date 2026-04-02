@@ -225,6 +225,10 @@ public class MatterOverdriveBlocks {
 			itemBlock = new MOMachineBlockItem(block);
 		} else if (block instanceof BlockDecorativeColored) {
 			itemBlock = new ItemColored(block, false);
+			// Must be true so JEI/HEI tracks metadata per color variant.
+			// ItemColored's own private hasSubtypes stays false so getUnlocalizedName
+			// returns just the base block name, letting addInformation() prepend the color.
+			itemBlock.setHasSubtypes(true);
 			itemBlock.setRegistryName(block.getRegistryName());
 		} else {
 			itemBlock = new ItemBlock(block);
@@ -241,6 +245,7 @@ public class MatterOverdriveBlocks {
 			itemBlock = new MOMachineBlockItem(block);
 		} else if (block instanceof BlockDecorativeColored) {
 			itemBlock = new ItemColored(block, false);
+			itemBlock.setHasSubtypes(true);
 			itemBlock.setRegistryName(block.getRegistryName());
 		} else {
 			itemBlock = new ItemBlock(block);
