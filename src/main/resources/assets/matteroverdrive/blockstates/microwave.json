@@ -4,7 +4,8 @@
     "model": "matteroverdrive:microwave",
     "custom":{
       "flip-v": true
-    }
+    },
+    "particle": "matteroverdrive:blocks/microwave"
   },
   "variants": {
     "facing":{

@@ -4,7 +4,8 @@
     "model": "matteroverdrive:pattern_storage.obj",
     "custom":{
       "flip-v": true
-    }
+    },
+    "particle": "matteroverdrive:blocks/pattern_storage"
   },
   "variants": {
     "facing":{

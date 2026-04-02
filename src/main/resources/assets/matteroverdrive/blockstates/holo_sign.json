@@ -1,7 +1,8 @@
 {
   "forge_marker": 1,
   "defaults": {
-    "model": "matteroverdrive:holo_sign"
+    "model": "matteroverdrive:holo_sign",
+    "particle": "matteroverdrive:blocks/holo_monitor"
   },
   "variants": {
     "normal": {"model": "matteroverdrive:holo_sign"},

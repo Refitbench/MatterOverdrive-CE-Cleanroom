@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/separator"
-    }
+    },
+    "particle": "matteroverdrive:blocks/separator"
   },
   "variants": {
     "axis=x":{"model": "matteroverdrive:base/cube_rotated_all"},

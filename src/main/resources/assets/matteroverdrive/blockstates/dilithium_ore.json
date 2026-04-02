@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/dilithium_ore"
-    }
+    },
+    "particle": "matteroverdrive:blocks/dilithium_ore"
   },
   "variants": {
     "normal": {"model": "cube_all"},

@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/floor_tiles_green"
-    }
+    },
+    "particle": "matteroverdrive:blocks/floor_tiles"
   },
   "variants": {
     "normal": {"model": "cube_all"},

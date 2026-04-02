@@ -4,7 +4,8 @@
     "model": "matteroverdrive:replicator.obj",
     "custom":{
       "flip-v": true
-    }
+    },
+    "particle": "matteroverdrive:blocks/replicator"
   },
   "variants": {
     "facing":{

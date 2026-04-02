@@ -1,7 +1,8 @@
 {
   "forge_marker": 1,
   "defaults": {
-    "model": "matteroverdrive:pattern_monitor"
+    "model": "matteroverdrive:pattern_monitor",
+    "particle": "matteroverdrive:blocks/holo_monitor"
   },
   "variants": {
     "normal": {"model": "matteroverdrive:pattern_monitor"},

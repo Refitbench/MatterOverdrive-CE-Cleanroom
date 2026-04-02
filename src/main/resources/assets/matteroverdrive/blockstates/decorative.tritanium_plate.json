@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/tritanium_plate"
-    }
+    },
+    "particle": "matteroverdrive:blocks/tritanium_plate"
   },
   "variants": {
     "normal": {"model": "cube_all"},

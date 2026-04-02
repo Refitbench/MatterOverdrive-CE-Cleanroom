@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/engine_exhaust_plasma"
-    }
+    },
+    "particle": "matteroverdrive:blocks/engine_exhaust_plasma"
   },
   "variants": {
     "normal": {"model": "cube_all"},

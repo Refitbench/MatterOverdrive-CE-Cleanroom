@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/floor_noise"
-    }
+    },
+    "particle": "matteroverdrive:blocks/floor_noise"
   },
   "variants": {
     "normal": {"model": "cube_all"},

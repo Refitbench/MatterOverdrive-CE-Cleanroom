@@ -4,7 +4,8 @@
     "model": "matteroverdrive:charging_station.obj",
     "custom": {
       "flip-v": true
-    }
+    },
+    "particle": "matteroverdrive:blocks/charging_station"
   },
   "variants": {
     "facing": {

@@ -4,7 +4,8 @@
     "model": "matteroverdrive:inscriber.obj",
     "custom":{
       "flip-v": true
-    }
+    },
+    "particle": "matteroverdrive:blocks/base_stripes"
   },
   "variants": {
     "facing":{

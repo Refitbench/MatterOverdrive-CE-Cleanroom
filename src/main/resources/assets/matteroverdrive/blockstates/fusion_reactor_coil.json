@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/base_stripes"
-    }
+    },
+    "particle": "matteroverdrive:blocks/base_stripes"
   },
   "variants": {
     "normal": {"model": "cube_all"},

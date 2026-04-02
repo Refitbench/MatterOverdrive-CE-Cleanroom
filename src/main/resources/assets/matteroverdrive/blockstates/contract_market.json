@@ -1,7 +1,8 @@
 {
   "forge_marker": 1,
   "defaults": {
-    "model": "matteroverdrive:contract_market"
+    "model": "matteroverdrive:contract_market",
+    "particle": "matteroverdrive:blocks/base_stripes"
   },
   "variants": {
     "normal": {"model": "matteroverdrive:contract_market"},

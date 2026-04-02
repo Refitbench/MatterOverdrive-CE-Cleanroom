@@ -4,7 +4,8 @@
     "textures": {
       "0": "matteroverdrive:blocks/heavy_matter_pipe"
     },
-    "model": "matteroverdrive:pipe/pipe_center"
+    "model": "matteroverdrive:pipe/pipe_center",
+    "particle": "matteroverdrive:blocks/heavy_matter_pipe"
   },
   "variants": {
     "down": {

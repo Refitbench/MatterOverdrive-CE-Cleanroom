@@ -4,7 +4,8 @@
     "model": "matteroverdrive:base/cube_colored_all",
     "textures": {
       "all": "matteroverdrive:blocks/tritanium_plate_colorless"
-    }
+    },
+    "particle": "matteroverdrive:blocks/tritanium_plate_colorless"
   },
   "variants": {
     "normal": {"model": "matteroverdrive:base/cube_colored_all"},

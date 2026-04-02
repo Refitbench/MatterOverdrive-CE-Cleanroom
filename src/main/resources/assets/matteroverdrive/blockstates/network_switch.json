@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/network_switch"
-    }
+    },
+    "particle": "matteroverdrive:blocks/network_switch"
   },
   "variants": {
     "normal": {"model": "cube_all"},

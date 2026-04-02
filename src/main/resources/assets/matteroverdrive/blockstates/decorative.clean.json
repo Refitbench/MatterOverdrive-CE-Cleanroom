@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/transporter_side"
-    }
+    },
+    "particle": "matteroverdrive:blocks/transporter_side"
   },
   "variants": {
     "normal": {"model": "cube_all"},

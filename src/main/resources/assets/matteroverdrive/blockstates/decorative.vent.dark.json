@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/vent"
-    }
+    },
+    "particle": "matteroverdrive:blocks/vent"
   },
   "variants": {
     "normal": {"model": "cube_all"},

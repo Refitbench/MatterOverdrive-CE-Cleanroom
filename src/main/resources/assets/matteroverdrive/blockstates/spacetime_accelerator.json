@@ -1,7 +1,8 @@
 {
   "forge_marker": 1,
   "defaults": {
-    "model": "matteroverdrive:spacetime_accelerator"
+    "model": "matteroverdrive:spacetime_accelerator",
+    "particle": "matteroverdrive:blocks/spacetime_accelerator_sides"
   },
   "variants": {
     "normal": {

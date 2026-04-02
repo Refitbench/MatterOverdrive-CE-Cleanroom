@@ -4,7 +4,8 @@
     "model": "matteroverdrive:new_tritanium_crate.obj",
     "custom":{
       "flip-v": true
-    }
+    },
+    "particle": "matteroverdrive:blocks/new_tritanium_crate"
   },
   "variants": {
     "color=base,facing=north": { "model": "matteroverdrive:new_tritanium_crate.obj", "y": 0 },

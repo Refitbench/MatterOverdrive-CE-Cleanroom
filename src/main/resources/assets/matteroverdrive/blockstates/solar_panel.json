@@ -6,7 +6,8 @@
       "top": "matteroverdrive:blocks/solar_panel",
       "side": "matteroverdrive:blocks/base",
       "bottom": "matteroverdrive:blocks/base"
-    }
+    },
+    "particle": "matteroverdrive:blocks/solar_panel"
   },
   "variants": {
     "normal": {

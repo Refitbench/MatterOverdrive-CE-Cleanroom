@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/base_coil"
-    }
+    },
+    "particle": "matteroverdrive:blocks/base_coil"
   },
   "variants": {
     "normal": {"model": "cube_all"},

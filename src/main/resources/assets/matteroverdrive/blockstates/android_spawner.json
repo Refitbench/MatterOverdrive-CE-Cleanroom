@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/android_spawner"
-    }
+    },
+    "particle": "matteroverdrive:blocks/android_spawner"
   },
   "variants": {
     "normal": {"model": "cube_all"},

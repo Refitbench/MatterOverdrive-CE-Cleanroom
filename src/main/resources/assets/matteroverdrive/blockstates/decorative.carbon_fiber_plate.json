@@ -4,7 +4,8 @@
     "model": "cube_all",
     "textures": {
       "all": "matteroverdrive:blocks/carbon_fiber_plate"
-    }
+    },
+    "particle": "matteroverdrive:blocks/carbon_fiber_plate"
   },
   "variants": {
     "normal": {"model": "cube_all"},

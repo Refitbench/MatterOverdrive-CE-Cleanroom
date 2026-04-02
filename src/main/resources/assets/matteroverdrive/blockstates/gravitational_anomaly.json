@@ -1,7 +1,8 @@
 {
 	"forge_marker": 1,
 	"defaults": {
-		"model": "matteroverdrive:base/sphere"
+		"model": "matteroverdrive:base/sphere",
+		"particle": "matteroverdrive:blocks/base_stripes"
 	},
 	"variants": {
 		"normal": {
