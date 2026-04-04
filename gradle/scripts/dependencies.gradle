@@ -75,7 +75,7 @@ dependencies {
     runtimeOnly rfg.deobf('mezz.jei:jei_1.12.2:4.8.5.138')
 
     // HEI - Had Enough Items (local jar in libs/; superset of JEI API)
-    compileOnly rfg.deobf(files("${rootDir}/libs/HadEnoughItems_1.12.2-4.30.5.jar"))
+    compileOnly rfg.deobf(files("${rootDir}/libs/HadEnoughItems_1.12.2-4.30.0.jar"))
 
     // OpenComputers
     compileOnly rfg.deobf('li.cil.oc:OpenComputers:MC1.12.2-1.7.5.221')

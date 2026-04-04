@@ -107,6 +107,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private int maxEnergy;
 	private boolean isAndroid;
 	private long lastBatterySyncTick = -20L;
+	private int cachedEnergyStored = -1;
 	private boolean bionicSlotsDirty = true;
 	private boolean hasRunOutOfPower;
 	private final AndroidEffects androidEffects;
@@ -360,6 +361,9 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			}
 		}
 
+		if (!simulate && cachedEnergyStored >= 0) {
+			cachedEnergyStored = Math.max(0, cachedEnergyStored - energyExtracted);
+		}
 		return energyExtracted;
 	}
 
@@ -373,6 +377,12 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		double percent = getPlayer().getAttributeMap().getAttributeInstance(AndroidAttributes.attributeBatteryUse)
 				.getAttributeValue();
 		int newEnergy = (int) Math.ceil(energy * percent);
+		// Use cached energy if available to avoid an item-capability NBT read on every
+		// stat's isEnabled check. The cache is kept accurate by write-through in
+		// extractEnergyRaw and receiveEnergy, and is invalidated at the start of each tick.
+		if (cachedEnergyStored >= 0) {
+			return cachedEnergyStored >= newEnergy;
+		}
 		return extractEnergyRaw(energy, true) >= newEnergy;
 	}
 
@@ -415,14 +425,15 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public int getEnergyStored() {
+		if (cachedEnergyStored >= 0) return cachedEnergyStored;
 		if (player.capabilities.isCreativeMode) {
-			return getMaxEnergyStored();
+			return cachedEnergyStored = getMaxEnergyStored();
 		}
 		if (getStackInSlot(ENERGY_SLOT) != null
 				&& getStackInSlot(ENERGY_SLOT).hasCapability(CapabilityEnergy.ENERGY, null)) {
-			return (getStackInSlot(ENERGY_SLOT).getCapability(CapabilityEnergy.ENERGY, null)).getEnergyStored();
+			return cachedEnergyStored = (getStackInSlot(ENERGY_SLOT).getCapability(CapabilityEnergy.ENERGY, null)).getEnergyStored();
 		} else {
-			return this.player.getDataManager().get(ENERGY);
+			return cachedEnergyStored = this.player.getDataManager().get(ENERGY);
 		}
 	}
 
@@ -459,6 +470,9 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 				energy = MathHelper.clamp(energy, 0, getMaxEnergyStored());
 				this.player.getDataManager().set(ENERGY, energy);
 			}
+		}
+		if (!simulate && cachedEnergyStored >= 0) {
+			cachedEnergyStored += energyReceived;
 		}
 		return energyReceived;
 	}
@@ -546,6 +560,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	}
 
 	public void onAndroidTick(Side side) {
+		cachedEnergyStored = -1;
 		if (side.isServer()) {
 			if (isAndroid()) {
 				if (getEnergyStored() > 0) {

@@ -54,31 +54,21 @@ public class MOJEIPlugin implements IModPlugin {
 
 	@Override
 	public void registerCollapsibleGroups(ICollapsibleGroupRegistry registry) {
-		registry.addGroup(
-				"matteroverdrive:colored_floor_tile",
-				"tile.decorative.floor_tile.name",
-				VanillaTypes.ITEM,
-				stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_floor_tile);
-		registry.addGroup(
-				"matteroverdrive:colored_floor_tiles",
-				"tile.decorative.floor_tiles.name",
-				VanillaTypes.ITEM,
-				stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_floor_tiles);
-		registry.addGroup(
-				"matteroverdrive:colored_tritanium_plate",
-				"tile.decorative.tritanium_plate_colored.name",
-				VanillaTypes.ITEM,
-				stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_tritanium_plate_colored);
-		registry.addGroup(
-				"matteroverdrive:color_modules",
-				"item.matteroverdrive.weapon_module_color.name",
-				VanillaTypes.ITEM,
-				stack -> stack.getItem() == MatterOverdrive.ITEMS.weapon_module_color);
-		registry.addGroup(
-				"matteroverdrive:contracts",
-				"item.matteroverdrive.contract.name",
-				VanillaTypes.ITEM,
-				stack -> stack.getItem() == MatterOverdrive.ITEMS.contract);
+		registry.newGroup("matteroverdrive:colored_floor_tile", "tile.decorative.floor_tile.name")
+				.addAny(VanillaTypes.ITEM,
+						stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_floor_tile);
+		registry.newGroup("matteroverdrive:colored_floor_tiles", "tile.decorative.floor_tiles.name")
+				.addAny(VanillaTypes.ITEM,
+						stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_floor_tiles);
+		registry.newGroup("matteroverdrive:colored_tritanium_plate", "tile.decorative.tritanium_plate_colored.name")
+				.addAny(VanillaTypes.ITEM,
+						stack -> Block.getBlockFromItem(stack.getItem()) == MatterOverdrive.BLOCKS.decorative_tritanium_plate_colored);
+		registry.newGroup("matteroverdrive:color_modules", "item.matteroverdrive.weapon_module_color.name")
+				.addAny(VanillaTypes.ITEM,
+						stack -> stack.getItem() == MatterOverdrive.ITEMS.weapon_module_color);
+		registry.newGroup("matteroverdrive:contracts", "item.matteroverdrive.contract.name")
+				.addAny(VanillaTypes.ITEM,
+						stack -> stack.getItem() == MatterOverdrive.ITEMS.contract);
 	}
 
 	@Override

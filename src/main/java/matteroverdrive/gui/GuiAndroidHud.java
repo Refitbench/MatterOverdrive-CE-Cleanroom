@@ -73,6 +73,7 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 	public boolean hideVanillaHudElements;
 	public boolean showEntityHudElements;
 	public boolean hudMovement;
+	public boolean debugBatteryDisplay;
 	private AnimationTextTyping textTyping;
 	private ShaderGroup hurtShader;
 	private HoloIcon crosshairIcon;
@@ -369,6 +370,14 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 				GlStateManager.popMatrix();
 
+				if (debugBatteryDisplay) {
+					GlStateManager.enableBlend();
+					GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					GlStateManager.color(1f, 1f, 1f, 1f);
+					String batteryText = "Battery: " + android.getEnergyStored() + " / " + android.getMaxEnergyStored() + " FE";
+					mc.fontRenderer.drawStringWithShadow(batteryText, 2, 2, 0x00FF00);
+				}
+
 				renderHurt(android, event);
 			} else {
 				if (android.isTurning()) {
@@ -479,5 +488,10 @@ public class GuiAndroidHud extends Gui implements IConfigSubscriber {
 				"Should the Android HUD move when the player turns his head.");
 		prop.setLanguageKey("config.android_hud.hud_movement");
 		hudMovement = prop.getBoolean();
+
+		prop = config.config.get(ConfigurationHandler.CATEGORY_DEBUG, "android_battery_display", false,
+				"Show raw battery FE values in the top-left corner of the screen for debugging.");
+		prop.setLanguageKey("config.debug.android_battery");
+		debugBatteryDisplay = prop.getBoolean();
 	}
 }

@@ -26,3 +26,4 @@
 - When the fusion reactor is at max power and draining slightly, the 100% will flicker, solution is to switch to rounding after 1%
 - Wrenching some blocks (decomposer) does not return properly.
 - Blocks picked up by wrench have strange tooltips.
+- As an android when in low power condition, you change back to human, the slowness is still applied without limit, reload fixes.
