@@ -134,7 +134,10 @@ public class TileEntityMachineReplicator extends MOTileEntityMachineMatter
 		if (getStackInSlot(OUTPUT_SLOT_ID).isEmpty()) {
 			ghostItem = item;
 		}
-		replicateAnimationCounter = REPLICATION_ANIMATION_TIME;
+		// Don't restart if an animation is already in progress — let it finish.
+		if (replicateAnimationCounter <= 0) {
+			replicateAnimationCounter = REPLICATION_ANIMATION_TIME;
+		}
 	}
 
 	@SideOnly(Side.CLIENT)
