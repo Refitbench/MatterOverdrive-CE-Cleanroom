@@ -299,6 +299,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		NBTTagCompound prop = (NBTTagCompound) compound.getTag(EXT_PROP_NAME);
 		if (prop != null) {
 			boolean initFlag = false;
+			boolean wasAndroid = this.isAndroid;
 			if (dataTypes.contains(DataType.ENERGY)) {
 				player.getDataManager().set(ENERGY, prop.getInteger("Energy"));
 				this.maxEnergy = prop.getInteger("MaxEnergy");
@@ -333,6 +334,16 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			}
 			if (initFlag) {
 				// init(this.player, this.player.world);
+			}
+			// When the player transitions from android to human (e.g. blue pill), revert
+			// any stat side-effects (e.g. step height) that are not attribute-based.
+			if (wasAndroid && !this.isAndroid) {
+				for (IBioticStat stat : MatterOverdrive.STAT_REGISTRY.getStats()) {
+					int unlockedLevel = getUnlockedLevel(stat);
+					if (unlockedLevel > 0) {
+						stat.changeAndroidStats(this, unlockedLevel, false);
+					}
+				}
 			}
 		}
 	}
@@ -495,6 +506,15 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			previousBionicParts.clear();
 			manageStatAttributeModifiers();
 		} else {
+			// Notify every unlocked stat that it is being disabled so non-attribute
+			// side-effects (e.g. step height) are properly reverted before the
+			// attribute modifiers are removed below.
+			for (IBioticStat stat : MatterOverdrive.STAT_REGISTRY.getStats()) {
+				int unlockedLevel = getUnlockedLevel(stat);
+				if (unlockedLevel > 0) {
+					stat.changeAndroidStats(this, unlockedLevel, false);
+				}
+			}
 			clearAllStatAttributeModifiers();
 			clearAllEquipmentAttributeModifiers();
 		}
