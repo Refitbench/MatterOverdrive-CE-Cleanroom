@@ -17,7 +17,8 @@ import net.minecraftforge.fml.common.Loader;
 import javax.annotation.Nonnull;
 
 public class BlockInscriber extends MOBlockMachine<TileEntityInscriber> {
-	public static final PropertyBool CTM = PropertyBool.create("ctm");
+	public static final PropertyBool ACTIVE = PropertyBool.create("active");
+	public static final PropertyBool CTM    = PropertyBool.create("ctm");
 
 	public BlockInscriber(Material material, String name) {
 		super(material, name);
@@ -27,6 +28,7 @@ public class BlockInscriber extends MOBlockMachine<TileEntityInscriber> {
 		this.setResistance(9.0f);
 		this.setHarvestLevel("pickaxe", 2);
 		setHasGui(true);
+		setDefaultState(getDefaultState().withProperty(ACTIVE, false));
 	}
 
 	@Override
@@ -37,7 +39,7 @@ public class BlockInscriber extends MOBlockMachine<TileEntityInscriber> {
 	@Nonnull
 	@Override
 	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, PROPERTY_DIRECTION, CTM);
+		return new BlockStateContainer(this, PROPERTY_DIRECTION, ACTIVE, CTM);
 	}
 
 	@Override
@@ -65,5 +67,19 @@ public class BlockInscriber extends MOBlockMachine<TileEntityInscriber> {
 	@Deprecated
 	public boolean isOpaqueCube(IBlockState state) {
 		return false;
+	}
+
+	@Override
+	public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
+		return state.getValue(ACTIVE) ? 10 : 0;
+	}
+
+	/** Flips the ACTIVE property in the stored block state, triggering automatic
+	 *  chunk light recalculation and client sync via setBlockState. Server-side only. */
+	public static void setActive(boolean active, World world, BlockPos pos) {
+		IBlockState current = world.getBlockState(pos);
+		if (!(current.getBlock() instanceof BlockInscriber)) return;
+		if (current.getValue(ACTIVE) == active) return;
+		world.setBlockState(pos, current.withProperty(ACTIVE, active), 3);
 	}
 }
