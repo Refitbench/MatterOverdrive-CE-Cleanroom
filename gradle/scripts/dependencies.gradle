@@ -71,8 +71,8 @@ dependencies {
     compileOnly rfg.deobf(files("${rootDir}/libs/Hwyla-1.8.26-B41_1.12.2.jar"))
 
     // JEI - Just Enough Items
-    compileOnly rfg.deobf('mezz.jei:jei_1.12.2:4.8.5.138:api')
-    runtimeOnly rfg.deobf('mezz.jei:jei_1.12.2:4.8.5.138')
+    // compileOnly rfg.deobf('mezz.jei:jei_1.12.2:4.8.5.138:api')
+    // runtimeOnly rfg.deobf('mezz.jei:jei_1.12.2:4.8.5.138')
 
     // HEI - Had Enough Items (local jar in libs/; superset of JEI API)
     compileOnly rfg.deobf(files("${rootDir}/libs/HadEnoughItems_1.12.2-4.30.0.jar"))

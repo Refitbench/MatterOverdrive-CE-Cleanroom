@@ -24,7 +24,7 @@ public interface IAndroidStatRenderRegistry {
 	 *         Handlers.
 	 * @see matteroverdrive.api.renderer.IBioticStatRenderer
 	 */
-	Collection<IBioticStatRenderer> getRendererCollection(Class<? extends IBioticStat> stat);
+	Collection<IBioticStatRenderer<?>> getRendererCollection(Class<? extends IBioticStat> stat);
 
 	/**
 	 * Removes and returns all renderers assigned to that bionic stat (android
@@ -33,7 +33,7 @@ public interface IAndroidStatRenderRegistry {
 	 * @param stat the class/type of bionic stat (android ability).
 	 * @return a collection of all assigned renderers to that stat class/type.
 	 */
-	Collection<IBioticStatRenderer> removeAllRenderersFor(Class<? extends IBioticStat> stat);
+	Collection<IBioticStatRenderer<?>> removeAllRenderersFor(Class<? extends IBioticStat> stat);
 
 	/**
 	 * Registers a Render Handler of a given BionicStat.
@@ -42,5 +42,5 @@ public interface IAndroidStatRenderRegistry {
 	 * @param renderer The Render Handler.
 	 * @return Did the Render Handler register.
 	 */
-	boolean registerRenderer(Class<? extends IBioticStat> stat, IBioticStatRenderer renderer);
+	boolean registerRenderer(Class<? extends IBioticStat> stat, IBioticStatRenderer<?> renderer);
 }

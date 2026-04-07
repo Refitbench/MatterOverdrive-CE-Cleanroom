@@ -1,4 +1,4 @@
-package matteroverdrive.handler;
+package matteroverdrive.handler.cyberware;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;

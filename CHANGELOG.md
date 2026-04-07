@@ -1,7 +1,5 @@
 # Changelog
-## [1.0.0] - 2026-03-31
-
-## [0.9.0] - 2026-03-25
+## [1.0.1] - 2026-03-31
 - First build under Refitbench.
 
 ### Added

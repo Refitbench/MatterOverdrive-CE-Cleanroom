@@ -271,15 +271,20 @@ public class RenderHandler {
 			renderer.onRenderWorldLast(this, event);
 		}
 		for (IBioticStat stat : MatterOverdrive.STAT_REGISTRY.getStats()) {
-			Collection<IBioticStatRenderer> statRendererCollection = statRenderRegistry
+			Collection<IBioticStatRenderer<?>> statRendererCollection = statRenderRegistry
 					.getRendererCollection(stat.getClass());
 			if (statRendererCollection != null) {
-				for (IBioticStatRenderer renderer : statRendererCollection) {
-					renderer.onWorldRender(stat, MOPlayerCapabilityProvider
-							.GetAndroidCapability(Minecraft.getMinecraft().player).getUnlockedLevel(stat), event);
+				for (IBioticStatRenderer<?> renderer : statRendererCollection) {
+					renderStatSafe(renderer, stat, event);
 				}
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T extends IBioticStat> void renderStatSafe(IBioticStatRenderer<T> renderer, IBioticStat stat, RenderWorldLastEvent event) {
+		renderer.onWorldRender((T) stat, MOPlayerCapabilityProvider
+				.GetAndroidCapability(Minecraft.getMinecraft().player).getUnlockedLevel(stat), event);
 	}
 
 	// Called when the client ticks.

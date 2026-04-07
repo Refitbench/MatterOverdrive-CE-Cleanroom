@@ -85,7 +85,7 @@ public class ConfigurationHandler {
 	public static final String KEY_AUTOMATIC_INSCRIBER_CALCULATION = "automatic matter calculation from inscriber";
 	public static final String KEY_MBLACKLIST = "blacklist";
 	public static final String KEY_BLACKLIST_MODS = "mod_blacklist";
-	public static final String KEY_VERSION_CHECK = "version_check";
+	public static final String KEY_VERSION_CHECK_CHAT = "version_check_chat";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_FALLING_BLOCKS = "gravitational anomaly falling blocks";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_BLOCK_ENTITIES = "gravitational anomaly block entities";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_SPAWN_CHANCE = "gravitational anomaly spawn chance";
@@ -123,6 +123,7 @@ public class ConfigurationHandler {
 	public boolean showFilledItems;
 	public boolean showInDevItems;
 	public boolean legacyTritaniumCrateMigrationEnabled;
+	public boolean versionCheckChat;
 
 	public ConfigurationHandler(File configDir) {
 		this.configDir = configDir;
@@ -198,6 +199,8 @@ public class ConfigurationHandler {
 				CATEGORY_GENERAL, true,
 				"Migrates old per-color tritanium crate blocks to the unified new_tritanium_crate block. "
 				+ "Disable only if you are certain your world never contained the old crate variants.");
+		versionCheckChat = config.getBoolean(KEY_VERSION_CHECK_CHAT, CATEGORY_GENERAL, true,
+				"When true, operators receive a chat notification on login if a newer version of Matter Overdrive is available.");
 
 		config.get(CATEGORY_WORLD_GEN, CATEGORY_WORLD_SPAWN_ORES, true,
 				"Should ores such as dilithium and tritanium ore spawn in the world. This applies for all ores !")

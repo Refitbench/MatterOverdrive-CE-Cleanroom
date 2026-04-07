@@ -2,26 +2,29 @@
 package matteroverdrive.handler;
 
 import matteroverdrive.MatterOverdrive;
+import matteroverdrive.Reference;
 import matteroverdrive.api.events.MOEventDialogConstruct;
 import matteroverdrive.api.events.MOEventDialogInteract;
 import matteroverdrive.api.events.MOEventScan;
-import matteroverdrive.api.events.bionicStats.MOEventBionicStat;
 import matteroverdrive.api.weapon.IWeapon;
 import matteroverdrive.data.quest.PlayerQuestData;
 import matteroverdrive.entity.android_player.AndroidPlayer;
 import matteroverdrive.entity.player.MOPlayerCapabilityProvider;
 import matteroverdrive.entity.player.OverdriveExtendedProperties;
-import matteroverdrive.items.includes.MOBaseItem;
 import matteroverdrive.network.packet.client.PacketUpdateMatterRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.common.ForgeVersion;
 import net.minecraftforge.event.AnvilUpdateEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerContainerEvent;
 import net.minecraftforge.event.entity.player.PlayerFlyableFallEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.ModContainer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -35,15 +38,12 @@ import java.util.List;
 
 public class PlayerEventHandler {
 	public final List<EntityPlayerMP> players;
-	private final VersionCheckerHandler versionCheckerHandler;
 	private final WeaponConfigHandler weaponConfigHandler;
 
 	public PlayerEventHandler(ConfigurationHandler configurationHandler) {
 		players = new ArrayList<>();
-		versionCheckerHandler = new VersionCheckerHandler();
 		weaponConfigHandler = new WeaponConfigHandler();
 
-		configurationHandler.subscribe(versionCheckerHandler);
 		configurationHandler.subscribe(weaponConfigHandler);
 	}
 
@@ -57,6 +57,20 @@ public class PlayerEventHandler {
 				}
 			} else {
 				players.add((EntityPlayerMP) event.player);
+			}
+		}
+
+		if (MatterOverdrive.CONFIG_HANDLER.versionCheckChat && event.player.canUseCommand(2, "")) {
+			ModContainer container = Loader.instance().getIndexedModList().get(Reference.MOD_ID);
+			if (container != null) {
+				ForgeVersion.CheckResult result = ForgeVersion.getResult(container);
+				if (result.status == ForgeVersion.Status.OUTDATED || result.status == ForgeVersion.Status.BETA_OUTDATED) {
+					event.player.sendMessage(new TextComponentString(
+							TextFormatting.GOLD + "[Matter Overdrive] " + TextFormatting.WHITE
+									+ "A newer version is available: " + TextFormatting.AQUA + result.target));
+					event.player.sendMessage(new TextComponentString(
+							TextFormatting.WHITE + "Download: " + TextFormatting.GREEN + Reference.DOWNLOAD_URL));
+				}
 			}
 		}
 	}
