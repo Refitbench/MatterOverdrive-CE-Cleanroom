@@ -14,32 +14,37 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class PacketReplicationComplete extends TileEntityUpdatePacket {
 	private ItemStack replicatedItem = ItemStack.EMPTY;
+	private boolean succeeded;
 
 	public PacketReplicationComplete() {
 		super();
 	}
 
-	public PacketReplicationComplete(TileEntity entity, ItemStack replicatedItem) {
+	public PacketReplicationComplete(TileEntity entity, ItemStack replicatedItem, boolean succeeded) {
 		super(entity);
 		this.replicatedItem = replicatedItem;
+		this.succeeded = succeeded;
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buf) {
 		super.fromBytes(buf);
 		replicatedItem = ByteBufUtils.readItemStack(buf);
+		succeeded = buf.readBoolean();
 	}
 
 	@Override
 	public void toBytes(ByteBuf buf) {
 		super.toBytes(buf);
 		ByteBufUtils.writeItemStack(buf, replicatedItem);
+		buf.writeBoolean(succeeded);
 	}
 
 	public static class ClientHandler extends AbstractClientPacketHandler<PacketReplicationComplete> {
 		@SideOnly(Side.CLIENT)
 		@Override
 		public void handleClientMessage(EntityPlayerSP player, PacketReplicationComplete message, MessageContext ctx) {
+			if (!message.succeeded) return;
 			TileEntity entity = message.getTileEntity(player.world);
 			if (entity instanceof TileEntityMachineReplicator) {
 				((TileEntityMachineReplicator) entity).beginSpawnParticles(message.replicatedItem);

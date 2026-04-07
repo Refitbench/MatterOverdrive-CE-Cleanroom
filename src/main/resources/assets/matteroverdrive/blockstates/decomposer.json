@@ -7,23 +7,26 @@
       "top": "matteroverdrive:blocks/decomposer_top",
       "side": "matteroverdrive:blocks/base_stripes",
       "front": "matteroverdrive:blocks/tank_empty",
-      "front_anim": "matteroverdrive:blocks/tank_full",
       "particle": "matteroverdrive:blocks/base_stripes",
       "back": "matteroverdrive:blocks/base_stripes"
     }
   },
   "variants": {
-    "normal": {"model": "matteroverdrive:base/orientable"},
-    "facing=north": { "model": "matteroverdrive:base/orientable"},
-    "facing=south": { "model": "matteroverdrive:base/orientable","y": 180 },
-    "facing=west":  { "model": "matteroverdrive:base/orientable","y": 270 },
-    "facing=east":  { "model": "matteroverdrive:base/orientable","y": 90 },
-    "facing=up":    { "model": "matteroverdrive:base/orientable"},
-    "facing=down":  { "model": "matteroverdrive:base/orientable"},
-
-    "inventory": {
+    "active": {
+      "false": {},
+      "true": { "textures": { "front": "matteroverdrive:blocks/tank_full" } }
+    },
+    "facing": {
+      "north": {},
+      "south": { "y": 180 },
+      "west":  { "y": 270 },
+      "east":  { "y": 90 },
+      "up":    {},
+      "down":  {}
+    },
+    "inventory": [{
       "model": "matteroverdrive:base/orientable",
       "transform": "forge:default-block"
-    }
+    }]
   }
 }

@@ -1,4 +1,9 @@
 # IDEAS / TODO
+- Replace custom update handler / checker with FML update.
+
+- Finish the Cyberware integration.
+- Overhaul the Transporter.
+-   Currently lacks effects that legacy had.
 - Implement a Comm Badge and Teleporter Controller, the comm badge can link to the controller and allow for teleportation back home from a configurable distance.
 -   The Teleporter Controller could also lock onto other things and teleport it, or increase the range with a manual lock. (Another player required).
 - Implement a HoloDeck, proxy for interdim travel with approved dim list.
@@ -18,9 +23,15 @@
 
 - Tricorder (Medical) and/or Hypospray.
 
+- Finish WIP items
+-   "piramid" - dead texture, looks to be a drive like object?
+-   "suppy_crate" - dead texture, looks to be some supply like crate.
+-   "box" - dead texture, similar to supply crate more simple looking.
+
 # OPTIMIZATIONS
 
 # DEBUG / TESTING
+Test jump assist when resetting back to human or out of power.
 
 # KNOWN ISSUES / BUGS
 - When the fusion reactor is at max power and draining slightly, the 100% will flicker, solution is to switch to rounding after 1%

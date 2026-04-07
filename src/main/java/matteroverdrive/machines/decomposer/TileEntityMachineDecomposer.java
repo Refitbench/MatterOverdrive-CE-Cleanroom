@@ -43,7 +43,6 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 	public int OUTPUT_SLOT_ID;
 	public int decomposeTime;
 	private long worldTickLast = 0;
-	private boolean lastDecomposingState;
 
 	public TileEntityMachineDecomposer() {
 		super(4);
@@ -125,22 +124,20 @@ public class TileEntityMachineDecomposer extends MOTileEntityMachineMatter imple
 
 	protected void manageDecompose() {
 		if (!world.isRemote) {
-			boolean isDecomposing = this.isDecomposing();
-			if (isDecomposing) {
-				if (this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick()) {
-					this.decomposeTime++;
-					getEnergyStorage().extractEnergy(getEnergyDrainPerTick(), false);
+			boolean serverActive = getServerActive();
+			if (serverActive) {
+				this.decomposeTime++;
+				getEnergyStorage().extractEnergy(getEnergyDrainPerTick(), false);
+				markDirty();
 
-					if (this.decomposeTime >= getSpeed()) {
-						this.decomposeTime = 0;
-						this.decomposeItem();
-					}
+				if (this.decomposeTime >= getSpeed()) {
+					this.decomposeTime = 0;
+					this.decomposeItem();
 				}
 			}
 
-			if (lastDecomposingState != isDecomposing) {
-				lastDecomposingState = isDecomposing;
-				BlockDecomposer.setState(isDecomposing, this.getWorld(), this.getPos());
+			if (BlockDecomposer.setActive(serverActive, this.getWorld(), this.getPos())) {
+				markDirty();
 			}
 		}
 

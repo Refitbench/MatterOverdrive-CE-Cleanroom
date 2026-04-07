@@ -77,8 +77,7 @@ public class ComponentTaskProcessingReplicator extends
 						if (this.replicateTime >= time) {
 							this.replicateTime = 0;
 							boolean replicationSucceeded = this.replicateItem(replicatePattern.getPattern(), patternStack);
-							MatterOverdrive.NETWORK.sendToDimention(new PacketReplicationComplete(machine, patternStack), getWorld());
-
+								MatterOverdrive.NETWORK.sendToDimention(new PacketReplicationComplete(machine, patternStack, replicationSucceeded), getWorld());
 							TileEntity TE = getWorld().getTileEntity(getPos());
 
 							// Make sure at that location we don't have a muffler installed.
@@ -152,6 +151,10 @@ public class ComponentTaskProcessingReplicator extends
 							sendTaskQueueChangedToWatchers(task.getId());
 						}
 					}
+					// Push the updated inventory to nearby clients so the output slot is visible
+					// in the world renderer when the animation fade completes (even if the machine
+					// stays active because another task is still queued).
+					machine.forceSync();
 					return true;
 				}
 			}

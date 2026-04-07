@@ -43,7 +43,9 @@ public class BioticStatStepAssist extends AbstractBioticStat {
 
 	@Override
 	public void changeAndroidStats(AndroidPlayer androidPlayer, int level, boolean enabled) {
-
+		if (!enabled) {
+			androidPlayer.getPlayer().stepHeight = 0.5f;
+		}
 	}
 
 	@Override

@@ -19,6 +19,7 @@ public class AnomalySuppressor {
 		this.amount = amount;
 	}
 
+	@SuppressWarnings("null")
 	public boolean update(AnomalySuppressor suppressor) {
 		if (suppressor.pos.equals(pos)) {
 			if (time < suppressor.time) {

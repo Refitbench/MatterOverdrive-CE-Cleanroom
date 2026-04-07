@@ -10,8 +10,11 @@ Although it may seem overpowered, Matter Overdrive takes a more realistic approa
 
 ## Refit Differences
 * Optimized every machine block, remove redundant code, cache states for huge idle overhead gains.
-* Optimized cables, instead of checking every tick for neighbors, we cache it.
+* Optimized Matter Pipes, instead of checking every tick for neighbors, we cache it.
+* Removed Matter Pipe internal buffers, transfers are direct.
 * Vastly improved and optimized the Anomaly, cache states and queue lookups (configurable).
+* Gravitational Stabilizer now requires power (Optional) and accepts upgrades and outputs stats via redstone.
+* Fuction Reactor now shows valid positions as block ghosts instead of just center.
 * Removed items and server logic for incomplete features. (StarMap / Grav Generator).
 * Completed the in-progress Tritanium Crate, its now a single block and accepts dye.
 * New config options for balance and tinkering by users and modpacks.
@@ -20,9 +23,14 @@ Although it may seem overpowered, Matter Overdrive takes a more realistic approa
 * Implemented HEI's collapsible group support.
 * Pattern Monitor allows managing tasks from networked replicators.
 * Replication requests can be infinite (-1), configurable by server host.
-* Bug fixes, fixed a fair amount of bugs and exploits.
-* New replication effects and sounds.
+* Fixed a fair amount of bugs and exploits. (Hopefully didn't add any new ones).
+* New Replication effects and sounds.
 * New Recharge Station effects and sounds.
+* Improved Android performance, cache unlocks and power states.
+
+## Switching from MO:CE or MO:Legacy
+* Always back up your worlds.
+* Current fusion reactors that have stablizers will require power.
 
 ## Mod-Links
 * [Discord](https://discord.gg/sgQxDJdrnY)

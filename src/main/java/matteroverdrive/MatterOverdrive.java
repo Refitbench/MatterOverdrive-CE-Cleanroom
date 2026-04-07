@@ -23,7 +23,6 @@ import matteroverdrive.init.*;
 import matteroverdrive.matter_network.MatterNetworkRegistry;
 import matteroverdrive.network.PacketPipeline;
 import matteroverdrive.proxy.CommonProxy;
-import matteroverdrive.tile.TileEntityNewTritaniumCrate;
 import matteroverdrive.util.AndroidPartsFactory;
 import matteroverdrive.util.DialogFactory;
 import matteroverdrive.util.QuestFactory;
@@ -38,7 +37,6 @@ import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.*;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -53,18 +51,25 @@ public class MatterOverdrive {
 	public static final MatterOverdriveItems ITEMS = new MatterOverdriveItems();
 	public static final MatterOverdriveBlocks BLOCKS = new MatterOverdriveBlocks();
 
+	@SuppressWarnings("null")
 	public static final OverdriveTab TAB_OVERDRIVE = new OverdriveTab("tabMO",
 			() -> new ItemStack(ITEMS.matter_scanner));
+	@SuppressWarnings("null")
 	public static final OverdriveTab TAB_OVERDRIVE_MODULES = new OverdriveTab("tabMO_modules",
 			() -> new ItemStack(ITEMS.weapon_module_color));
+	@SuppressWarnings("null")
 	public static final OverdriveTab TAB_OVERDRIVE_UPGRADES = new OverdriveTab("tabMO_upgrades",
 			() -> new ItemStack(ITEMS.item_upgrade));
+	@SuppressWarnings("null")
 	public static final OverdriveTab TAB_OVERDRIVE_FOOD = new OverdriveTab("tabMO_food",
 			() -> new ItemStack(ITEMS.earl_gray_tea));
+	@SuppressWarnings("null")
 	public static final OverdriveTab TAB_OVERDRIVE_SHIPS = new OverdriveTab("tabMO_ships",
 			() -> new ItemStack(ITEMS.colonizerShip));
+	@SuppressWarnings("null")
 	public static final OverdriveTab TAB_OVERDRIVE_BUILDINGS = new OverdriveTab("tabMO_buildings",
 			() -> new ItemStack(ITEMS.buildingBase));
+	@SuppressWarnings("null")
 	public static final OverdriveTab TAB_OVERDRIVE_DECORATIVE = new OverdriveTab("tabMO_decorative",
 			() -> new ItemStack(BLOCKS.decorative_tritanium_plate));
 
@@ -136,6 +141,7 @@ public class MatterOverdrive {
 		ITEMS.init();
 		OverdriveFluids.init(event);
 		BLOCKS.init();
+		LegacyTritaniumCrateMigration.init();
 
 		MinecraftForge.EVENT_BUS.register(MatterOverdriveBlocks.class);
 		MinecraftForge.EVENT_BUS.register(MatterOverdriveItems.class);

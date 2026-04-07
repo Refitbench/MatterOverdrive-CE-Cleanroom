@@ -68,7 +68,10 @@ public class ComponentTaskProcessingAnalyzer extends
 		}
 
 		// Update the machine's state with the running state.
-		BlockMatterAnalyzer.setState(isAnalyzing, this.getWorld(), this.getPos());
+		if (BlockMatterAnalyzer.setActive(isAnalyzing, this.getWorld(), this.getPos())) {
+			TileEntity te = getWorld().getTileEntity(getPos());
+			if (te != null) te.markDirty();
+		}
 	}
 
 	public void analyzeItem() {

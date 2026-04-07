@@ -1,6 +1,7 @@
 package matteroverdrive.tile;
 
 import java.util.EnumSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
@@ -28,6 +29,18 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 
 public class TileEntityNewTritaniumCrate extends MOTileEntity implements IInventory, IInteractionObject {
+	/**
+	 * Populated by the legacy chunk-load migration handler in MatterOverdriveBlocks.
+	 * Maps "dim,x,y,z" → color index for blocks that were converted from old individual-color
+	 * registrations and therefore have no saved "Color" NBT tag.
+	 * Entries are consumed (removed) in {@link #onLoad()} once the color is applied.
+	 */
+	public static final ConcurrentHashMap<String, Integer> PENDING_COLORS = new ConcurrentHashMap<>();
+
+	public static String pendingKey(int dim, int x, int y, int z) {
+		return dim + "," + x + "," + y + "," + z;
+	}
+
 	final TileEntityInventory inventory;
 
 	private int color;
@@ -69,6 +82,18 @@ public class TileEntityNewTritaniumCrate extends MOTileEntity implements IInvent
 
 		if (categories.contains(MachineNBTCategory.INVENTORY)) {
 			inventory.readFromNBT(nbt);
+		}
+	}
+
+	@Override
+	public void onLoad() {
+		if (!PENDING_COLORS.isEmpty() && world != null && !world.isRemote) {
+			String key = pendingKey(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ());
+			Integer pendingColor = PENDING_COLORS.remove(key);
+			if (pendingColor != null) {
+				color = pendingColor;
+				markDirty();
+			}
 		}
 	}
 

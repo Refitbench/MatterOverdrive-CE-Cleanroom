@@ -17,9 +17,9 @@ public class MOEventRegisterAndroidStatRenderer extends Event {
 	/**
 	 * The Bionic Stat renderer itself.
 	 */
-	public final IBioticStatRenderer renderer;
+	public final IBioticStatRenderer<?> renderer;
 
-	public MOEventRegisterAndroidStatRenderer(Class<? extends IBioticStat> statClass, IBioticStatRenderer renderer) {
+	public MOEventRegisterAndroidStatRenderer(Class<? extends IBioticStat> statClass, IBioticStatRenderer<?> renderer) {
 		this.statClass = statClass;
 		this.renderer = renderer;
 	}

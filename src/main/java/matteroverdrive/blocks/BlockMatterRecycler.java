@@ -1,25 +1,23 @@
 package matteroverdrive.blocks;
 
-import matteroverdrive.MatterOverdrive;
 import matteroverdrive.blocks.includes.MOMatterEnergyStorageBlock;
 import matteroverdrive.tile.TileEntityMachineMatterRecycler;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.Random;
-
 import javax.annotation.Nonnull;
 
 public class BlockMatterRecycler extends MOMatterEnergyStorageBlock<TileEntityMachineMatterRecycler> {
-	private static boolean keepInventory;
+
+	public static final PropertyBool ACTIVE = PropertyBool.create("active");
 
 	public BlockMatterRecycler(Material material, String name) {
 		super(material, name, true, true);
@@ -27,7 +25,9 @@ public class BlockMatterRecycler extends MOMatterEnergyStorageBlock<TileEntityMa
 		setHardness(20.0F);
 		this.setResistance(9.0f);
 		this.setHarvestLevel("pickaxe", 2);
-		this.setDefaultState(this.blockState.getBaseState().withProperty(PROPERTY_DIRECTION, EnumFacing.NORTH));
+		this.setDefaultState(this.blockState.getBaseState()
+				.withProperty(PROPERTY_DIRECTION, EnumFacing.NORTH)
+				.withProperty(ACTIVE, false));
 		this.setTranslationKey("matter_recycler");
 		setHasGui(true);
 	}
@@ -35,7 +35,7 @@ public class BlockMatterRecycler extends MOMatterEnergyStorageBlock<TileEntityMa
 	@Nonnull
 	@Override
 	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, PROPERTY_DIRECTION);
+		return new BlockStateContainer(this, PROPERTY_DIRECTION, ACTIVE);
 	}
 
 	@Override
@@ -44,40 +44,36 @@ public class BlockMatterRecycler extends MOMatterEnergyStorageBlock<TileEntityMa
 		super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
 	}
 
+	/**
+	 * Encode both ACTIVE and facing into the 4-bit block metadata.
+	 * Facing uses bits 0-2 (EnumFacing.getIndex(): N=2, S=3, W=4, E=5).
+	 * ACTIVE uses bit 3.
+	 */
 	@Override
-	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-		if (keepInventory) {
-
-		} else {
-
-			super.breakBlock(worldIn, pos, state);
-		}
+	public int getMetaFromState(IBlockState state) {
+		return state.getValue(PROPERTY_DIRECTION).getIndex() | (state.getValue(ACTIVE) ? 8 : 0);
 	}
 
+	@Nonnull
 	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
-		return Item.getItemFromBlock(MatterOverdrive.BLOCKS.recycler);
+	@Deprecated
+	public IBlockState getStateFromMeta(int meta) {
+		return getDefaultState()
+				.withProperty(PROPERTY_DIRECTION, EnumFacing.byIndex(meta & 7))
+				.withProperty(ACTIVE, (meta & 8) != 0);
 	}
 
-	public static void setState(boolean active, World worldIn, BlockPos pos) {
-		IBlockState iblockstate = worldIn.getBlockState(pos);
-		TileEntity tileentity = worldIn.getTileEntity(pos);
-		keepInventory = true;
-
-		if (active) {
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.recycler_running.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-		} else {
-			worldIn.setBlockState(pos, MatterOverdrive.BLOCKS.recycler.getDefaultState()
-					.withProperty(PROPERTY_DIRECTION, iblockstate.getValue(PROPERTY_DIRECTION)), 3);
-		}
-
-		keepInventory = false;
-
-		if (tileentity != null) {
-			tileentity.validate();
-			worldIn.setTileEntity(pos, tileentity);
-		}
+	/**
+	 * Flips the ACTIVE block-state property at pos without replacing the block or
+	 * disturbing the tile entity. No-ops when pos is not a BlockMatterRecycler or
+	 * the state already matches. Returns true if the state was actually changed.
+	 */
+	public static boolean setActive(boolean active, World world, BlockPos pos) {
+		IBlockState current = world.getBlockState(pos);
+		if (!(current.getBlock() instanceof BlockMatterRecycler)) return false;
+		if (current.getValue(ACTIVE) == active) return false;
+		world.setBlockState(pos, current.withProperty(ACTIVE, active), 3);
+		return true;
 	}
 
 	@Override
