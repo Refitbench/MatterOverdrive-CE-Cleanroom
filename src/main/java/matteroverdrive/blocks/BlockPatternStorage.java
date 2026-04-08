@@ -49,5 +49,9 @@ public class BlockPatternStorage extends MOBlockMachine<TileEntityMachinePattern
 				512000, String.format("How much energy can the %s hold", getLocalizedName()));
 		TileEntityMachinePatternStorage.ENERGY_TRANSFER = config.getMachineInt(getTranslationKey(), "transfer.energy",
 				512000, String.format("The Transfer speed of the %s", getLocalizedName()));
+		TileEntityMachinePatternStorage.ENERGY_DRAIN_CHILL = config.getMachineInt(getTranslationKey(), "drain.base",
+				1000, "Base energy drain per tick in RF when the machine is idle (no drives installed)");
+		TileEntityMachinePatternStorage.ENERGY_DRAIN_PER_DRIVE = config.getMachineInt(getTranslationKey(), "drain.per_drive",
+				100, "Additional energy drain per tick in RF per 2 pattern slots provided by installed drives");
 	}
 }

@@ -50,6 +50,11 @@ public class BlockWeaponStation extends MOBlockMachine<TileEntityWeaponStation> 
 	}
 
 	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
+
+	@Override
 	@Deprecated
 	public boolean isOpaqueCube(IBlockState state) {
 		return false;

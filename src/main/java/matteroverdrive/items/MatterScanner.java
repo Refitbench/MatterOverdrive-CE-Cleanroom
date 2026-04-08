@@ -7,11 +7,14 @@ import javax.annotation.Nullable;
 
 import org.lwjgl.input.Keyboard;
 
+import java.util.Random;
 import matteroverdrive.api.IScannable;
 import matteroverdrive.api.events.MOEventScan;
 import matteroverdrive.api.inventory.IBlockScanner;
 import matteroverdrive.api.matter.IMatterDatabase;
 import matteroverdrive.client.sound.MachineSound;
+import matteroverdrive.handler.ConfigurationHandler;
+import matteroverdrive.util.IConfigSubscriber;
 import matteroverdrive.data.matter_network.ItemPattern;
 import matteroverdrive.handler.SoundHandler;
 import matteroverdrive.init.MatterOverdriveSounds;
@@ -43,17 +46,30 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class MatterScanner extends MOBaseItem implements IBlockScanner {
+public class MatterScanner extends MOBaseItem implements IBlockScanner, IConfigSubscriber {
 	public static final String SELECTED_TAG_NAME = "lastSelected";
 	public static final String PAGE_TAG_NAME = "page";
 	public static final String PANEL_OPEN_TAG_NAME = "panelOpen";
-	public static final int PROGRESS_PER_ITEM = 10;
-	public static final int SCAN_TIME = 60;
+	public static int PROGRESS_PER_ITEM = 10;
+	public static int SCAN_TIME = 60;
+	public static double FAIL_CHANCE = 0.0;
+	private final Random random = new Random();
 	@SideOnly(Side.CLIENT)
 	public static MachineSound scanningSound;
 
 	public MatterScanner(String name) {
 		super(name);
+	}
+
+	@Override
+	public void onConfigChanged(ConfigurationHandler config) {
+		config.initMachineCategory("matter_scanner");
+		PROGRESS_PER_ITEM = config.getMachineInt("matter_scanner", "progress.per_scan",
+				10, "Pattern progress percentage added per successful scan");
+		SCAN_TIME = config.getMachineInt("matter_scanner", "time.scan",
+				60, "Base ticks used to compute scan hold-time: total = this + item matter amount");
+		FAIL_CHANCE = config.getMachineDouble("matter_scanner", "chance.fail",
+				0.1, 0.0, 1.0, "Probability (0.0-1.0) that a scan fails, destroying the block without adding progress");
 	}
 
 	public static IMatterDatabase getLink(World world, ItemStack scanner) {
@@ -370,6 +386,11 @@ public class MatterScanner extends MOBaseItem implements IBlockScanner {
 
 		if (database != null && MatterHelper.CanScan(worldBlock)) {
 			resetScanProgress(scanner);
+			if (FAIL_CHANCE > 0.0 && random.nextDouble() < FAIL_CHANCE) {
+				SoundHandler.PlaySoundAt(world, MatterOverdriveSounds.scannerFail, SoundCategory.PLAYERS, player);
+				HarvestBlock(scanner, player, world, pos);
+				return false;
+			}
 			if (database.addItem(worldBlock, PROGRESS_PER_ITEM, false, scanInfo)) {
 				// scan successful
 				SoundHandler.PlaySoundAt(world, MatterOverdriveSounds.scannerSuccess, SoundCategory.PLAYERS, player);

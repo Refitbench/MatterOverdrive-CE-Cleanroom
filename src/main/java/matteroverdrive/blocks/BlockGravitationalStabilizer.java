@@ -33,16 +33,16 @@ public class BlockGravitationalStabilizer extends MOBlockMachine<TileEntityMachi
 		super.onConfigChanged(config);
 		String machine = getTranslationKey();
 		TileEntityMachineGravitationalStabilizer.ENERGY_CAPACITY = config.getMachineInt(
-				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_ENERGY_CAPACITY, 100000,
+				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_ENERGY_CAPACITY, 250000,
 				"Maximum RF stored by the gravitational stabilizer.");
 		TileEntityMachineGravitationalStabilizer.MAX_ENERGY_RECEIVE = config.getMachineInt(
-				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_MAX_ENERGY_RECEIVE, 2000,
+				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_MAX_ENERGY_RECEIVE, 4000,
 				"Maximum RF/t the gravitational stabilizer can accept.");
 		TileEntityMachineGravitationalStabilizer.BASE_ENERGY_PER_TICK = config.getMachineInt(
-				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_BASE_ENERGY_PER_TICK, 20,
+				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_BASE_ENERGY_PER_TICK, 200,
 				"RF/t consumed at minimum anomaly stress (stress = 0%).");
 		TileEntityMachineGravitationalStabilizer.MAX_ENERGY_PER_TICK = config.getMachineInt(
-				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_MAX_ENERGY_PER_TICK, 200,
+				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_MAX_ENERGY_PER_TICK, 2000,
 				"RF/t consumed at maximum anomaly stress (stress = 100%).");
 		TileEntityMachineGravitationalStabilizer.RESCAN_RATE = config.getMachineInt(
 				machine, ConfigurationHandler.KEY_GRAVITATIONAL_STABILIZER_RESCAN_RATE, 40,

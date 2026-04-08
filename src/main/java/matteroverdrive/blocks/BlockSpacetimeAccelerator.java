@@ -36,15 +36,21 @@ public class BlockSpacetimeAccelerator extends MOBlockMachine<TileEntityMachineS
 		return new TileEntityMachineSpacetimeAccelerator();
 	}
 
+	@Nonnull
+	@Override
+	public TileEntityMachineSpacetimeAccelerator createNewTileEntity(World world, int meta) {
+		return new TileEntityMachineSpacetimeAccelerator();
+	}
+
 	@Override
 	@Deprecated
-	public boolean isFullCube(IBlockState state) {
+	public boolean isFullCube(@Nonnull IBlockState state) {
 		return false;
 	}
 
 	@Override
 	@Deprecated
-	public boolean isOpaqueCube(IBlockState state) {
+	public boolean isOpaqueCube(@Nonnull IBlockState state) {
 		return false;
 	}
 

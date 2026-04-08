@@ -14,9 +14,9 @@ Although it may seem overpowered, Matter Overdrive takes a more realistic approa
 * Removed Matter Pipe internal buffers, transfers are direct.
 * Vastly improved and optimized the Anomaly, cache states and queue lookups (configurable).
 * Gravitational Stabilizer now requires power (Optional) and accepts upgrades and outputs stats via redstone.
-* Fuction Reactor now shows valid positions as block ghosts instead of just center.
+* Fusion Reactor now shows valid anomaly positions instead of just center.
 * Removed items and server logic for incomplete features. (StarMap / Grav Generator).
-* Completed the in-progress Tritanium Crate, its now a single block and accepts dye.
+* Completed the WIP Tritanium Crate, its now a single block and accepts dye.
 * New config options for balance and tinkering by users and modpacks.
 * Register items properly, so they show up in the same place, as it should have been.
 * Better organize items and blocks to make a bit more logical sense.
@@ -28,9 +28,10 @@ Although it may seem overpowered, Matter Overdrive takes a more realistic approa
 * New Recharge Station effects and sounds.
 * Improved Android performance, cache unlocks and power states.
 
-## Switching from MO:CE or MO:Legacy
+## Switching from MO:CE or MO:Legacy to MO:Refit
 * Always back up your worlds.
 * Current fusion reactors that have stablizers will require power.
+* Some machines may require picking up and replacing.
 
 ## Mod-Links
 * [Discord](https://discord.gg/sgQxDJdrnY)

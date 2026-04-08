@@ -22,10 +22,10 @@ import java.util.*;
 
 public class MOWorldGen implements IWorldGenerator, IConfigSubscriber {
 	private static float BUILDING_SPAWN_CHANCE = 0.01f;
-	private static final int TRITANIUM_VEINS_PER_CHUNK = 5;
-	private static final int TRITANIUM_VEIN_SIZE = 4;
-	private static final int DILITHIUM_VEINS_PER_CHUNK = 2;
-	private static final int DILITHIUM_VEIN_SIZE = 3;
+	private static final int DEFAULT_TRITANIUM_VEINS_PER_CHUNK = 5;
+	private static final int DEFAULT_TRITANIUM_VEIN_SIZE = 4;
+	private static final int DEFAULT_DILITHIUM_VEINS_PER_CHUNK = 2;
+	private static final int DEFAULT_DILITHIUM_VEIN_SIZE = 3;
 	public final List<WeightedRandomMOWorldGenBuilding> buildings;
 	private final Random oreRandom;
 	private final Random anomaliesRandom;
@@ -36,6 +36,10 @@ public class MOWorldGen implements IWorldGenerator, IConfigSubscriber {
 	boolean generateDilithium;
 	boolean generateAnomalies;
 	boolean generateBuildings = true;
+	private int tritaniumVeinsPerChunk = DEFAULT_TRITANIUM_VEINS_PER_CHUNK;
+	private int tritaniumVeinSize = DEFAULT_TRITANIUM_VEIN_SIZE;
+	private int dilithiumVeinsPerChunk = DEFAULT_DILITHIUM_VEINS_PER_CHUNK;
+	private int dilithiumVeinSize = DEFAULT_DILITHIUM_VEIN_SIZE;
 	private int MOAndroidHouseBuildingchance = 20;
 	private int MOSandPitchance = 100;
 	private int MOWorldGenCrashedSpaceShipchance = 60;
@@ -68,8 +72,8 @@ public class MOWorldGen implements IWorldGenerator, IConfigSubscriber {
 	}
 
 	public void init(ConfigurationHandler configurationHandler) {
-		tritaniumGen = new WorldGenMinable(MatterOverdrive.BLOCKS.tritaniumOre.getDefaultState(), TRITANIUM_VEIN_SIZE);
-		dilithiumGen = new WorldGenMinable(MatterOverdrive.BLOCKS.dilithium_ore.getDefaultState(), DILITHIUM_VEIN_SIZE);
+		tritaniumGen = new WorldGenMinable(MatterOverdrive.BLOCKS.tritaniumOre.getDefaultState(), tritaniumVeinSize);
+		dilithiumGen = new WorldGenMinable(MatterOverdrive.BLOCKS.dilithium_ore.getDefaultState(), dilithiumVeinSize);
 
 		buildings.add(new WeightedRandomMOWorldGenBuilding(new MOAndroidHouseBuilding("android_house"),
 				MOAndroidHouseBuildingchance));
@@ -106,7 +110,7 @@ public class MOWorldGen implements IWorldGenerator, IConfigSubscriber {
 	public void generateOres(World world, Random random, int chunkX, int chunkZ, int dimentionID) {
 		if (!oreDimentionsBlacklist.contains(dimentionID)) {
 			if (generateDilithium) {
-				for (int i = 0; i < DILITHIUM_VEINS_PER_CHUNK; i++) {
+				for (int i = 0; i < dilithiumVeinsPerChunk; i++) {
 					int x = chunkX + random.nextInt(16);
 					int z = chunkZ + random.nextInt(16);
 					int y = random.nextInt(28) + 4;
@@ -116,7 +120,7 @@ public class MOWorldGen implements IWorldGenerator, IConfigSubscriber {
 			}
 
 			if (generateTritanium) {
-				for (int i = 0; i < TRITANIUM_VEINS_PER_CHUNK; i++) {
+				for (int i = 0; i < tritaniumVeinsPerChunk; i++) {
 					int x = chunkX + random.nextInt(16);
 					int z = chunkZ + random.nextInt(16);
 					int y = random.nextInt(60) + 4;
@@ -232,6 +236,20 @@ public class MOWorldGen implements IWorldGenerator, IConfigSubscriber {
 				&& shouldGenerateOres.getBoolean(true);
 		generateDilithium = shouldGenerate(MatterOverdrive.BLOCKS.dilithium_ore, config)
 				&& shouldGenerateOres.getBoolean(true);
+		tritaniumVeinsPerChunk = config.config.getInt(ConfigurationHandler.KEY_TRITANIUM_VEINS_PER_CHUNK,
+				ConfigurationHandler.CATEGORY_WORLD_GEN, DEFAULT_TRITANIUM_VEINS_PER_CHUNK, 0, 64,
+				"Number of tritanium ore veins to generate per chunk");
+		tritaniumVeinSize = config.config.getInt(ConfigurationHandler.KEY_TRITANIUM_VEIN_SIZE,
+				ConfigurationHandler.CATEGORY_WORLD_GEN, DEFAULT_TRITANIUM_VEIN_SIZE, 1, 64,
+				"Maximum number of ores per tritanium vein");
+		dilithiumVeinsPerChunk = config.config.getInt(ConfigurationHandler.KEY_DILITHIUM_VEINS_PER_CHUNK,
+				ConfigurationHandler.CATEGORY_WORLD_GEN, DEFAULT_DILITHIUM_VEINS_PER_CHUNK, 0, 64,
+				"Number of dilithium ore veins to generate per chunk");
+		dilithiumVeinSize = config.config.getInt(ConfigurationHandler.KEY_DILITHIUM_VEIN_SIZE,
+				ConfigurationHandler.CATEGORY_WORLD_GEN, DEFAULT_DILITHIUM_VEIN_SIZE, 1, 64,
+				"Maximum number of ores per dilithium vein");
+		tritaniumGen = new WorldGenMinable(MatterOverdrive.BLOCKS.tritaniumOre.getDefaultState(), tritaniumVeinSize);
+		dilithiumGen = new WorldGenMinable(MatterOverdrive.BLOCKS.dilithium_ore.getDefaultState(), dilithiumVeinSize);
 		Property shouldGenerateOthers = config.config.get(ConfigurationHandler.CATEGORY_WORLD_GEN,
 				ConfigurationHandler.CATEGORY_WORLD_SPAWN_OTHER, true);
 		shouldGenerateOthers.setComment("Should other Matter Overdrive World Blocks be Generated?");

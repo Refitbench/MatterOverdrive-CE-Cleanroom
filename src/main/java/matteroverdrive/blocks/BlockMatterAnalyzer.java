@@ -4,6 +4,8 @@ package matteroverdrive.blocks;
 import javax.annotation.Nonnull;
 
 import matteroverdrive.blocks.includes.MOMatterEnergyStorageBlock;
+import matteroverdrive.handler.ConfigurationHandler;
+import matteroverdrive.machines.analyzer.ComponentTaskProcessingAnalyzer;
 import matteroverdrive.machines.analyzer.TileEntityMachineMatterAnalyzer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
@@ -93,6 +95,22 @@ public class BlockMatterAnalyzer extends MOMatterEnergyStorageBlock<TileEntityMa
 	@Override
 	public boolean isSideSolid(IBlockState state, @Nonnull IBlockAccess world, @Nonnull BlockPos pos, EnumFacing side) {
 		return true;
+	}
+
+	@Override
+	public void onConfigChanged(ConfigurationHandler config) {
+		super.onConfigChanged(config);
+		config.initMachineCategory(getTranslationKey());
+		TileEntityMachineMatterAnalyzer.ENERGY_CAPACITY = config.getMachineInt(getTranslationKey(), "storage.energy",
+				512000, "Maximum energy storage capacity of the Matter Analyzer in RF");
+		ComponentTaskProcessingAnalyzer.ANALYZE_SPEED = config.getMachineInt(getTranslationKey(), "speed.analyze",
+				800, "Ticks per analysis cycle (lower = faster; affected by Speed upgrades)");
+		ComponentTaskProcessingAnalyzer.ENERGY_DRAIN_PER_ITEM = config.getMachineInt(getTranslationKey(), "cost.analyze",
+				64000, "Total energy cost in RF per item analyzed");
+		ComponentTaskProcessingAnalyzer.PROGRESS_AMOUNT_PER_ITEM = config.getMachineInt(getTranslationKey(), "progress.per_scan",
+				20, "Pattern progress percentage added per successful scan (5 scans needed to fully unlock at default of 20)");
+		ComponentTaskProcessingAnalyzer.FAIL_CHANCE = config.getMachineDouble(getTranslationKey(), "chance.fail",
+				0.10, "Base probability (0.0-1.0) that a scan fails and the item is consumed without progress");
 	}
 
 	@Override

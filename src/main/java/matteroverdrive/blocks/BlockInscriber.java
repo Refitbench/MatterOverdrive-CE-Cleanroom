@@ -2,6 +2,7 @@
 package matteroverdrive.blocks;
 
 import matteroverdrive.blocks.includes.MOBlockMachine;
+import matteroverdrive.handler.ConfigurationHandler;
 import matteroverdrive.tile.TileEntityInscriber;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
@@ -51,6 +52,23 @@ public class BlockInscriber extends MOBlockMachine<TileEntityInscriber> {
 	@Override
 	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
 		return new TileEntityInscriber();
+	}
+
+	@Nonnull
+	@Override
+	public TileEntityInscriber createNewTileEntity(World world, int meta) {
+		return new TileEntityInscriber();
+	}
+
+	@Override
+	public void onConfigChanged(ConfigurationHandler config) {
+		super.onConfigChanged(config);
+		TileEntityInscriber.ENERGY_CAPACITY = config.getMachineInt(getTranslationKey(), "storage.energy", 512000,
+				"How much energy the inscriber can store");
+		TileEntityInscriber.ENERGY_TRANSFER = config.getMachineInt(getTranslationKey(), "transfer.energy", 16000,
+				"Max energy per tick the inscriber can receive and extract");
+		TileEntityInscriber.ENERGY_USAGE_MULTIPLIER = config.getMachineDouble(getTranslationKey(), "usage.multiplier", 1.0,
+				"Multiplier applied to the energy cost of each inscription recipe");
 	}
 
 	/*

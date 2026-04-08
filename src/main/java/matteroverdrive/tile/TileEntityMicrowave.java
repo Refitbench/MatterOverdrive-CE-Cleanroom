@@ -23,8 +23,10 @@ import java.util.EnumSet;
 public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 	private static final EnumSet<UpgradeTypes> upgradeTypes = EnumSet.of(UpgradeTypes.PowerUsage, UpgradeTypes.Speed,
 			UpgradeTypes.PowerStorage, UpgradeTypes.PowerTransfer, UpgradeTypes.Muffler);
-	public static final int ENERGY_CAPACITY = 512000;
-	public static final int ENERGY_TRANSFER = 512000;
+	public static int ENERGY_CAPACITY = 512000;
+	public static int ENERGY_TRANSFER = 512000;
+	public static int ENERGY_COST = 1000;
+	public static int COOK_SPEED = 10;
 	public int INPUT_SLOT_ID, OUTPUT_SLOT_ID;
 	@SideOnly(Side.CLIENT)
 	private float nextHeadX, nextHeadY;
@@ -106,7 +108,7 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 		ItemStack input = inventory.getStackInSlot(INPUT_SLOT_ID);
 		ItemStack res = FurnaceRecipes.instance().getSmeltingResult(input);
 		if (!res.isEmpty()) {
-			return (int) (1000 * getUpgradeMultiply(UpgradeTypes.PowerUsage));
+			return (int) (ENERGY_COST * getUpgradeMultiply(UpgradeTypes.PowerUsage));
 		}
 		return 0;
 	}
@@ -115,7 +117,7 @@ public class TileEntityMicrowave extends MOTileEntityMachineEnergy {
 		ItemStack input = inventory.getStackInSlot(INPUT_SLOT_ID);
 		ItemStack res = FurnaceRecipes.instance().getSmeltingResult(input);
 		if (!res.isEmpty()) {
-			return (int) (1 * getUpgradeMultiply(UpgradeTypes.Speed));
+			return (int) (COOK_SPEED * getUpgradeMultiply(UpgradeTypes.Speed));
 		}
 		return 0;
 	}

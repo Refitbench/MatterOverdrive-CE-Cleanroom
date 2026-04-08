@@ -45,6 +45,11 @@ public class BlockHoloSign extends BlockMonitor<TileEntityHoloSign> implements I
 	}
 
 	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
+
+	@Override
 	public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos neighbor) {
 		boolean flag;
 		EnumFacing l = world.getBlockState(pos).getValue(MOBlock.PROPERTY_DIRECTION);

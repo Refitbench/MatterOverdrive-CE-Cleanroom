@@ -9,6 +9,8 @@ import matteroverdrive.machines.events.MachineEvent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+
+import javax.annotation.Nonnull;
 import net.minecraft.util.SoundEvent;
 
 import java.util.EnumSet;
@@ -25,7 +27,7 @@ public class TileEntityHoloSign extends MOTileEntityMachine {
 		super.writeCustomNBT(nbt, categories, toDisk);
 
 		if (categories.contains(MachineNBTCategory.GUI)) {
-			nbt.setString("Text", text);
+			nbt.setString("Text", text != null ? text : "");
 		}
 	}
 
@@ -64,7 +66,7 @@ public class TileEntityHoloSign extends MOTileEntityMachine {
 	}
 
 	@Override
-	public int[] getSlotsForFace(EnumFacing side) {
+	public int[] getSlotsForFace(@Nonnull EnumFacing side) {
 		return new int[0];
 	}
 

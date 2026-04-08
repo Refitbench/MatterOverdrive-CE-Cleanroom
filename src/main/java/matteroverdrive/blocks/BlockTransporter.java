@@ -6,7 +6,6 @@ import matteroverdrive.handler.ConfigurationHandler;
 import matteroverdrive.machines.transporter.TileEntityMachineTransporter;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
@@ -28,7 +27,13 @@ public class BlockTransporter extends MOMatterEnergyStorageBlock<TileEntityMachi
 
 	@Nonnull
 	@Override
-	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
+	public TileEntityMachineTransporter createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
+		return new TileEntityMachineTransporter();
+	}
+
+	@Nonnull
+	@Override
+	public TileEntityMachineTransporter createNewTileEntity(World world, int meta) {
 		return new TileEntityMachineTransporter();
 	}
 

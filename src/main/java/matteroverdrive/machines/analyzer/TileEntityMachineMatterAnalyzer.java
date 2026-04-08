@@ -28,10 +28,10 @@ import java.util.EnumSet;
 
 public class TileEntityMachineMatterAnalyzer extends MOTileEntityMachineEnergy
 		implements ISidedInventory, IMatterNetworkClient, IMatterNetworkConnection, IMatterNetworkDispatcher {
-	public static final int ENERGY_CAPACITY = 512000;
-	public static final int ENERGY_TRANSFER = 512000;
+	public static int ENERGY_CAPACITY = 512000;
+	public static int ENERGY_TRANSFER = 512000;
 	private static final EnumSet<UpgradeTypes> upgradeTypes = EnumSet.of(UpgradeTypes.PowerUsage,
-			UpgradeTypes.PowerStorage, UpgradeTypes.Speed, UpgradeTypes.PowerStorage, UpgradeTypes.Muffler);
+			UpgradeTypes.PowerStorage, UpgradeTypes.Speed, UpgradeTypes.Fail, UpgradeTypes.Muffler);
 	public int input_slot = 0;
 	private ComponentMatterNetworkAnalyzer networkComponent;
 	private ComponentMatterNetworkConfigs componentMatterNetworkConfigs;

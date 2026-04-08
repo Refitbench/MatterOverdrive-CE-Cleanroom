@@ -34,8 +34,8 @@ public class TileEntityRendererWeaponStation extends TileEntityRendererStation<T
 				}
 
 				itemEntity.hoverStart = weaponStation.getWorld().getWorldTime();
-				GlStateManager.translate(x + 0.5f, y + 0.8f, z + 0.5f);
-				GlStateManager.scale(0.5, 0.5, 0.5);
+				GlStateManager.translate(x + 0.5f, y + 1.2f, z + 0.5f);
+				GlStateManager.scale(0.85, 0.85, 0.85);
 				RenderHelper.enableStandardItemLighting();
 				GlStateManager.rotate(getWorld().getWorldTime(), 0, 1, 0);
 				RenderUtils.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
