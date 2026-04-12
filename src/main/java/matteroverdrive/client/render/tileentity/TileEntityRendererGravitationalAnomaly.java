@@ -72,6 +72,7 @@ public class TileEntityRendererGravitationalAnomaly extends TileEntitySpecialRen
 		sphere_model.draw((float) 0.33, 8, 8);
 		GlStateManager.enableLighting();
 		GlStateManager.disableBlend();
+		GL11.glDepthMask(true);
 		GlStateManager.popMatrix();
 
 	}
