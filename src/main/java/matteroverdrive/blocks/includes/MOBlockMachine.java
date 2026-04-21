@@ -192,6 +192,13 @@ public abstract class MOBlockMachine<TE extends TileEntity> extends MOBlockConta
 	@Override
 	public void onConfigChanged(ConfigurationHandler config) {
 		config.initMachineCategory(getTranslationKey());
-		volume = (float) config.getMachineDouble(getTranslationKey(), "volume", 1, "The volume of the Machine");
+		if (hasMachineSound()) {
+			volume = (float) config.getMachineDouble(getTranslationKey(), "volume", 1, "The volume of the Machine");
+		}
+	}
+
+	/** Override and return false to suppress the volume config option for soundless machines. */
+	protected boolean hasMachineSound() {
+		return true;
 	}
 }

@@ -15,9 +15,9 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 
 public class TileEntityMachineSolarPanel extends MOTileEntityMachineEnergy {
-	public static final int CHARGE_AMOUNT = 8;
-	public static final int ENERGY_CAPACITY = 64000;
-	public static final int MAX_ENERGY_EXTRACT = 512;
+	public static int CHARGE_AMOUNT = 8;
+	public static int ENERGY_CAPACITY = 64000;
+	public static int MAX_ENERGY_EXTRACT = 512;
 
 	private byte chargeAmount;
 

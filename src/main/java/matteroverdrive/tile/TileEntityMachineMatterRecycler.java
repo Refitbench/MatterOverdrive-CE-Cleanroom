@@ -21,10 +21,10 @@ import net.minecraft.world.World;
 
 public class TileEntityMachineMatterRecycler extends MOTileEntityMachineEnergy {
 
-	public static final int ENERGY_CAPACITY = 512000;
-	public static final int ENERGY_TRANSFER = 512000;
-	public static final int RECYCLE_SPEED_PER_MATTER = 80;
-	public static final int RECYCLE_ENERGY_PER_MATTER = 1000;
+	public static int ENERGY_CAPACITY = 512000;
+	public static int ENERGY_TRANSFER = 512000;
+	public static int RECYCLE_SPEED_PER_MATTER = 80;
+	public static int RECYCLE_ENERGY_PER_MATTER = 1000;
 	private static EnumSet<UpgradeTypes> upgradeTypes = EnumSet.of(UpgradeTypes.PowerStorage, UpgradeTypes.PowerUsage,
 			UpgradeTypes.Speed, UpgradeTypes.Muffler);
 	public int OUTPUT_SLOT_ID;

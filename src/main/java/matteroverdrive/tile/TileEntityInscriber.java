@@ -4,26 +4,34 @@ import java.util.EnumSet;
 import java.util.Optional;
 
 import matteroverdrive.api.inventory.UpgradeTypes;
+import matteroverdrive.blocks.BlockInscriber;
+import matteroverdrive.client.render.RenderParticlesHandler;
 import matteroverdrive.data.Inventory;
 import matteroverdrive.data.inventory.InscriberSlot;
 import matteroverdrive.data.inventory.RemoveOnlySlot;
 import matteroverdrive.data.recipes.InscriberRecipe;
+import matteroverdrive.fx.InscriberSparkParticle;
 import matteroverdrive.init.MatterOverdriveRecipes;
 import matteroverdrive.init.MatterOverdriveSounds;
 import matteroverdrive.machines.MachineNBTCategory;
 import matteroverdrive.machines.events.MachineEvent;
+import matteroverdrive.proxy.ClientProxy;
 import matteroverdrive.util.math.MOMathHelper;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class TileEntityInscriber extends MOTileEntityMachineEnergy {
-	public static final int ENERGY_CAPACITY = 512000;
-	public static final int ENERGY_TRANSFER = 512000;
+	public static int ENERGY_CAPACITY = 512000;
+	public static int ENERGY_TRANSFER = 512000;
+	public static double ENERGY_USAGE_MULTIPLIER = 1.0;
 	private static final EnumSet<UpgradeTypes> upgradeTypes = EnumSet.of(UpgradeTypes.PowerUsage, UpgradeTypes.Speed,
 			UpgradeTypes.PowerStorage, UpgradeTypes.PowerTransfer, UpgradeTypes.Muffler);
 	public static int MAIN_INPUT_SLOT_ID, SEC_INPUT_SLOT_ID, OUTPUT_SLOT_ID;
@@ -111,6 +119,13 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 	}
 
 	@Override
+	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+		// Only re-create the tile entity when the block type actually changes,
+		// not for property-only updates like the ACTIVE flag flip.
+		return !(newState.getBlock() instanceof BlockInscriber);
+	}
+
+	@Override
 	public boolean getServerActive() {
 		return isInscribing() && this.energyStorage.getEnergyStored() >= getEnergyDrainPerTick();
 	}
@@ -126,7 +141,7 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 
 	public int getEnergyDrainMax() {
 		if (cachedRecipe != null) {
-			return (int) (cachedRecipe.getEnergy() * getUpgradeMultiply(UpgradeTypes.PowerUsage));
+			return (int) (cachedRecipe.getEnergy() * ENERGY_USAGE_MULTIPLIER * getUpgradeMultiply(UpgradeTypes.PowerUsage));
 		}
 		return 0;
 	}
@@ -144,7 +159,7 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 
 	@Override
 	public SoundEvent getSound() {
-		return MatterOverdriveSounds.machine;
+		return MatterOverdriveSounds.electricMachine;
 	}
 
 	@Override
@@ -166,6 +181,7 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 		super.update();
 		if (world.isRemote && isActive()) {
 			handleHeadAnimation();
+			spawnInscriberEffects();
 		}
 		manageInscription();
 	}
@@ -184,6 +200,11 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 	protected void onMachineEvent(MachineEvent event) {
 		if (event instanceof MachineEvent.Awake) {
 			calculateRecipe();
+		}
+		if (event instanceof MachineEvent.ActiveChange && !world.isRemote) {
+			// setBlockState with a genuinely changed ACTIVE property triggers
+			// automatic checkLight + client chunk update on both sides.
+			BlockInscriber.setActive(isActive(), world, getPos());
 		}
 	}
 
@@ -207,6 +228,56 @@ public class TileEntityInscriber extends MOTileEntityMachineEnergy {
 		}
 
 		headAnimationTime += 0.05f;
+	}
+
+	@SideOnly(Side.CLIENT)
+	private void spawnInscriberEffects() {
+		// Fire every 3 ticks; 25% random chance on off-ticks for an irregular rhythm.
+		long wt = world.getWorldTime();
+		boolean onBeat    = (wt % 3 == 0);
+		boolean randomHit = !onBeat && (random.nextFloat() < 0.25f);
+		if (!onBeat && !randomHit) return;
+
+		double cx = getPos().getX() + 0.5;
+		double cy = getPos().getY();
+		double cz = getPos().getZ() + 0.5;
+		double coneY = cy + 0.750;
+
+		// Brief contact-arc glow at cone tip
+		InscriberSparkParticle flash = new InscriberSparkParticle(
+				world,
+				cx + (random.nextFloat() - 0.5) * 0.02,
+				coneY,
+				cz + (random.nextFloat() - 0.5) * 0.02,
+				0, 0.002, 0,
+				1.0f, 0.80f, 0.40f,
+				0.35f, 2);
+		ClientProxy.renderHandler.getRenderParticlesHandler()
+				.addEffect(flash, RenderParticlesHandler.Blending.Additive);
+
+		// Spark burst: count and colour warmth vary each burst for irregular feel
+		int count = 3 + random.nextInt(6); // 3-8 sparks
+		float warmth = 0.35f + random.nextFloat() * 0.60f; // orange → near-white per burst
+		for (int i = 0; i < count; i++) {
+			double sx = cx + (random.nextFloat() - 0.5) * 0.05;
+			double sy = coneY + (random.nextFloat() - 0.5) * 0.015;
+			double sz = cz + (random.nextFloat() - 0.5) * 0.05;
+
+			double angle  = random.nextDouble() * Math.PI * 2;
+			double hSpeed = 0.07 + random.nextDouble() * 0.12; // 0.07-0.19 radial
+			double vx = Math.cos(angle) * hSpeed;
+			double vy = 0.04 + random.nextDouble() * 0.05;    // 0.04-0.09, peaks below arm
+			double vz = Math.sin(angle) * hSpeed;
+
+			float r = 1.0f;
+			float g = warmth + random.nextFloat() * (1.0f - warmth) * 0.35f;
+			float b = random.nextFloat() * 0.10f;
+
+			InscriberSparkParticle spark = new InscriberSparkParticle(
+					world, sx, sy, sz, vx, vy, vz, r, g, b);
+			ClientProxy.renderHandler.getRenderParticlesHandler()
+					.addEffect(spark, RenderParticlesHandler.Blending.Additive);
+		}
 	}
 
 	@SideOnly(Side.CLIENT)

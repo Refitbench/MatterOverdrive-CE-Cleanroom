@@ -102,6 +102,7 @@ public class BioticStatRendererShield implements IBioticStatRenderer<BioticStatS
 			GlStateManager.enableCull();
 			GlStateManager.enableAlpha();
 			GlStateManager.depthMask(true);
+			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 			GlStateManager.popMatrix();
 		}
 	}

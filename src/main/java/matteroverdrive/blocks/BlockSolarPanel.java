@@ -4,6 +4,7 @@ package matteroverdrive.blocks;
 import javax.annotation.Nonnull;
 
 import matteroverdrive.blocks.includes.MOMatterEnergyStorageBlock;
+import matteroverdrive.handler.ConfigurationHandler;
 import matteroverdrive.tile.TileEntityMachineSolarPanel;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -36,6 +37,23 @@ public class BlockSolarPanel extends MOMatterEnergyStorageBlock<TileEntityMachin
 	@Override
 	public boolean isOpaqueCube(IBlockState state) {
 		return false;
+	}
+
+	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
+
+	@Override
+	public void onConfigChanged(ConfigurationHandler config) {
+		super.onConfigChanged(config);
+		config.initMachineCategory(getTranslationKey());
+		TileEntityMachineSolarPanel.ENERGY_CAPACITY = config.getMachineInt(getTranslationKey(), "storage.energy",
+				64000, "Maximum energy storage capacity of the Solar Panel in RF");
+		TileEntityMachineSolarPanel.MAX_ENERGY_EXTRACT = config.getMachineInt(getTranslationKey(), "transfer.energy",
+				512, "Maximum RF per tick the Solar Panel can push into adjacent machines");
+		TileEntityMachineSolarPanel.CHARGE_AMOUNT = config.getMachineInt(getTranslationKey(), "generation.base",
+				8, "Base RF generated per tick at peak solar angle (scales with sun position and light level)");
 	}
 
 }

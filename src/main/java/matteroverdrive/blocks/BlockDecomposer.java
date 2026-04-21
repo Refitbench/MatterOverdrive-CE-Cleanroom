@@ -104,13 +104,13 @@ public class BlockDecomposer extends MOMatterEnergyStorageBlock<TileEntityMachin
 		super.onConfigChanged(config);
 		config.initMachineCategory(getTranslationKey());
 		TileEntityMachineDecomposer.MATTER_STORAGE = config.getMachineInt(getTranslationKey(), "storage.matter", 1024,
-				String.format("How much matter can the %s hold", getLocalizedName()));
+				String.format("Maximum matter storage capacity (%s)", getLocalizedName()));
 		TileEntityMachineDecomposer.ENERGY_CAPACITY = config.getMachineInt(getTranslationKey(), "storage.energy",
-				512000, String.format("How much energy can the %s hold", getLocalizedName()));
+				512000, String.format("Maximum energy storage capacity (%s)", getLocalizedName()));
 		TileEntityMachineDecomposer.DECEOPOSE_SPEED_PER_MATTER = config.getMachineInt(getTranslationKey(),
-				"speed.decompose", 80, "The speed in ticks, of decomposing. (per matter)");
+				"speed.decompose", 80, "Number of ticks per matter unit decomposed (lower = faster)");
 		TileEntityMachineDecomposer.DECOMPOSE_ENERGY_PER_MATTER = config.getMachineInt(getTranslationKey(),
-				"cost.decompose", 6000, "Decomposing cost per matter");
+				"cost.decompose", 6000, "Energy cost in RF per 1 unit of matter decomposed");
 	}
 
 }

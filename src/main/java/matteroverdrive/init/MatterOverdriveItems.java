@@ -192,14 +192,17 @@ public class MatterOverdriveItems {
 
 //		Pattern Tech and Upgrades
 		matter_scanner = register(new MatterScanner("matter_scanner"));
+		MatterOverdrive.CONFIG_HANDLER.subscribe(matter_scanner);
 		pattern_drive = register(new PatternDrive("pattern_drive", 2));
 		transportFlashDrive = register(new TransportFlashDrive("transport_flash_drive"));
 		networkFlashDrive = register(new NetworkFlashDrive("network_flash_drive"));
 		item_upgrade = register(new ItemUpgrade("upgrade"));
 		security_protocol = register(new SecurityProtocol("security_protocol"));
-		portableDecomposer = register(new PortableDecomposer("portable_decomposer", 512, 0.1f));
+		portableDecomposer = register(new PortableDecomposer("portable_decomposer"));
+		MatterOverdrive.CONFIG_HANDLER.subscribe(portableDecomposer);
 		spacetime_equalizer = register(new SpacetimeEqualizer("spacetime_equalizer"));
-        
+		MatterOverdrive.CONFIG_HANDLER.subscribe(spacetime_equalizer);
+
 //		Weapons
 		phaser = register(new Phaser("phaser"));
 		phaserRifle = register(new PhaserRifle("phaser_rifle"));

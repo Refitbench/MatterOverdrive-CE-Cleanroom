@@ -52,6 +52,11 @@ public class BlockFusionReactorController extends MOBlockMachine<TileEntityMachi
 	}
 
 	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
+
+	@Override
 	public void onConfigChanged(ConfigurationHandler config) {
 		super.onConfigChanged(config);
 		TileEntityMachineFusionReactorController.ENERGY_CAPACITY = config.getMachineInt(getTranslationKey(),

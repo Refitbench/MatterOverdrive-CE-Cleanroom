@@ -14,23 +14,27 @@ Although it may seem overpowered, Matter Overdrive takes a more realistic approa
 * Removed Matter Pipe internal buffers, transfers are direct.
 * Vastly improved and optimized the Anomaly, cache states and queue lookups (configurable).
 * Gravitational Stabilizer now requires power (Optional) and accepts upgrades and outputs stats via redstone.
-* Fuction Reactor now shows valid positions as block ghosts instead of just center.
+* Fusion Reactor now shows valid anomaly positions instead of just center ghost block.
 * Removed items and server logic for incomplete features. (StarMap / Grav Generator).
-* Completed the in-progress Tritanium Crate, its now a single block and accepts dye.
-* New config options for balance and tinkering by users and modpacks.
+* Completed the WIP Tritanium Crate, its now a single block and accepts dye.
+* Lots of config options for balance and tinkering by users and modpacks.
 * Register items properly, so they show up in the same place, as it should have been.
 * Better organize items and blocks to make a bit more logical sense.
 * Implemented HEI's collapsible group support.
 * Pattern Monitor allows managing tasks from networked replicators.
 * Replication requests can be infinite (-1), configurable by server host.
-* Fixed a fair amount of bugs and exploits. (Hopefully didn't add any new ones).
+* Fixed a fair amount of bugs and exploits. (Hopefully didn't add any new ones.. probably did, report them!).
 * New Replication effects and sounds.
 * New Recharge Station effects and sounds.
+* New Inscriber effects and sounds.
 * Improved Android performance, cache unlocks and power states.
 
-## Switching from MO:CE or MO:Legacy
-* Always back up your worlds.
-* Current fusion reactors that have stablizers will require power.
+## Switching from MO:CE or MO:Legacy to MO:Refit
+If you are coming from MO:CE and have no current setups built, switch is fairly simple, you will just see some incomplete items removed from the save. If you DO have setups, the following is important.
+* Always back up your save!
+* If you have fusion reactors with stablizers, they will by default require power now, if left as is, your stablizers will stop working!
+* Some machines may require picking up and replacing.
+* Old tritanium crates should get converted to the new tile, check them after upgrade, report any issues.
 
 ## Mod-Links
 * [Discord](https://discord.gg/sgQxDJdrnY)

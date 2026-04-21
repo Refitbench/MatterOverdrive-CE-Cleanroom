@@ -73,7 +73,7 @@ public class ConfigurationHandler {
 	public static final String CATEGORY_ANDROID_HUD = CATEGORY_CLIENT + "." + "android_hud";
 	public static final String CATEGORY_SERVER = "server";
 	public static final String CATEGORY_STARMAP = "starmap";
-	public static final String KEY_STARMAP_ENABLED = "enabled";
+	public static final String KEY_STARMAP_ENABLED = "starmap_enabled";
 	public static final String CATEGORY_ENCHANTMENTS = "enchantments";
 	public static final String CATEGORY_ENTITIES = "entities";
 	public static final String CATEGORY_ANDROID_PLAYER = CATEGORY_ENTITIES + "." + "android_player";
@@ -98,6 +98,7 @@ public class ConfigurationHandler {
 	public static final String KEY_GRAVITATIONAL_ANOMALY_IDLE_SCAN_TICKS = "idle scan ticks";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_ENTITY_SCAN_RATE = "entity scan rate";
 	public static final String KEY_GRAVITATIONAL_ANOMALY_DEBUG_SCAN_WIREFRAME = "gravitational anomaly scan wireframe debug";
+	public static final String KEY_EQUALIZER_DAMAGE_RATE = "equalizer damage rate";
 	public static final String KEY_GRAVITATIONAL_STABILIZER_ENERGY_CAPACITY = "gravitational stabilizer energy capacity";
 	public static final String KEY_GRAVITATIONAL_STABILIZER_MAX_ENERGY_RECEIVE = "gravitational stabilizer max energy receive";
 	public static final String KEY_GRAVITATIONAL_STABILIZER_BASE_ENERGY_PER_TICK = "gravitational stabilizer base energy per tick";
@@ -109,6 +110,10 @@ public class ConfigurationHandler {
 	public static final String KEY_CRASHED_SHIP_SPAWN_CHANCE = "crashed ship spawn chance";
 	public static final String KEY_UNDERWATER_BASE_SPAWN_CHANCE = "underwater base spawn chance";
 	public static final String KEY_CARGO_SHIP_SPAWN_CHANCE = "cargo ship spawn chance";
+	public static final String KEY_TRITANIUM_VEINS_PER_CHUNK = "tritanium veins per chunk";
+	public static final String KEY_TRITANIUM_VEIN_SIZE = "tritanium vein size";
+	public static final String KEY_DILITHIUM_VEINS_PER_CHUNK = "dilithium veins per chunk";
+	public static final String KEY_DILITHIUM_VEIN_SIZE = "dilithium vein size";
 	public static final String KEY_ANDROID_ENERGY_WATCH_ID = "android energy watch id";
 	public static final String KEY_MATTER_REGISTRATION_DEBUG = "matter registration";
 	public static final String KEY_STRUCTURE_REGISTRATION_DEBUG = "structure worldgen registration";
@@ -156,6 +161,12 @@ public class ConfigurationHandler {
 		category = config.getCategory(CATEGORY_DEBUG);
 		updateCategoryLang(category);
 		category.setComment("Debug Options. Such as Debug Log for Matter Recipe Calculation");
+		starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_DEBUG, false,
+				"[INCOMPLETE FEATURE] Enable the Starmap feature. Under active development.");
+		pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_DEBUG, false,
+				"[INCOMPLETE FEATURE] Enable the Dimensional Pylon feature. Under active development.");
+		showInDevItems = config.getBoolean("showInDevItems", CATEGORY_DEBUG, false,
+				"Shows items which are incomplete / have no function");
 		category = config.getCategory(CATEGORY_ANDROID_HUD);
 		updateCategoryLang(category);
 		category.setComment("Positioning and colors of Android HUD elements");
@@ -166,9 +177,6 @@ public class ConfigurationHandler {
 		category = config.getCategory(CATEGORY_MACHINES);
 		category.setComment("Machine Options.");
 		updateCategoryLang(category);
-		pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_MACHINES, false,
-				"Enable the Dimensional Pylon feature. WARNING: This feature is incomplete and under active development. "
-						+ "Leave disabled unless enabling for development purposes.");
 		category = config.getCategory(CATEGORY_WORLD_GEN);
 		category.setComment("World Generation options.");
 		updateCategoryLang(category);
@@ -178,9 +186,6 @@ public class ConfigurationHandler {
 		category = config.getCategory(CATEGORY_STARMAP);
 		category.setComment("Starmap feature options.");
 		updateCategoryLang(category);
-		starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_STARMAP, false,
-				"Enable the Starmap feature. WARNING: This feature is incomplete and under active development. "
-						+ "Leave disabled unless enabling for development purposes.");
 
 		category = config.getCategory(CATEGORY_COMPATIBILITY);
 		category.setComment("Option for other mods");
@@ -192,8 +197,7 @@ public class ConfigurationHandler {
 		showFilledItems = config.getBoolean("show_filled_items", CATEGORY_GENERAL, false,
 			"When false, filled variants of energy/matter items (batteries, containers) "
 				+ "are hidden from creative inventory and JEI. Empty variants still appear.");
-		showInDevItems = config.getBoolean("showInDevItems", CATEGORY_GENERAL, false,
-				"Shows items which are incomplete / have no function");
+
 
 		legacyTritaniumCrateMigrationEnabled = config.getBoolean("legacy_tritanium_crate_migration",
 				CATEGORY_GENERAL, true,
@@ -320,10 +324,10 @@ public class ConfigurationHandler {
 	@SubscribeEvent
 	public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
 		if (eventArgs.getModID().equals(Reference.MOD_ID)) {
-			starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_STARMAP, false, "");
-			pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_MACHINES, false, "");
+			starmapEnabled = config.getBoolean(KEY_STARMAP_ENABLED, CATEGORY_DEBUG, false, "");
+			pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_DEBUG, false, "");
 			showFilledItems = config.getBoolean("show_filled_items", CATEGORY_GENERAL, false, "");
-			showInDevItems = config.getBoolean("showInDevItems", CATEGORY_GENERAL, false, "");
+			showInDevItems = config.getBoolean("showInDevItems", CATEGORY_DEBUG, false, "");
 			config.save();
 		}
 

@@ -1,6 +1,7 @@
 package matteroverdrive.blocks;
 
 import matteroverdrive.blocks.includes.MOMatterEnergyStorageBlock;
+import matteroverdrive.handler.ConfigurationHandler;
 import matteroverdrive.tile.TileEntityMachineMatterRecycler;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
@@ -74,6 +75,18 @@ public class BlockMatterRecycler extends MOMatterEnergyStorageBlock<TileEntityMa
 		if (current.getValue(ACTIVE) == active) return false;
 		world.setBlockState(pos, current.withProperty(ACTIVE, active), 3);
 		return true;
+	}
+
+	@Override
+	public void onConfigChanged(ConfigurationHandler config) {
+		super.onConfigChanged(config);
+		config.initMachineCategory(getTranslationKey());
+		TileEntityMachineMatterRecycler.ENERGY_CAPACITY = config.getMachineInt(getTranslationKey(), "storage.energy",
+				512000, "Maximum energy storage capacity of the Matter Recycler in RF");
+		TileEntityMachineMatterRecycler.RECYCLE_SPEED_PER_MATTER = config.getMachineInt(getTranslationKey(), "speed.recycle",
+				80, "Base ticks per matter unit recycled (lower = faster; scaled logarithmically by item matter value)");
+		TileEntityMachineMatterRecycler.RECYCLE_ENERGY_PER_MATTER = config.getMachineInt(getTranslationKey(), "cost.recycle",
+				1000, "Energy cost in RF per 1 unit of matter recycled");
 	}
 
 	@Override

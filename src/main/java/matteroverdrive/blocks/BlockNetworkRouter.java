@@ -43,4 +43,9 @@ public class BlockNetworkRouter extends MOBlockMachine<TileEntityMachineNetworkR
 	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
 		return new TileEntityMachineNetworkRouter();
 	}
+
+	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
 }

@@ -90,6 +90,7 @@ public class GuiStarMap extends MOGuiMachine<TileEntityMachineStarMap> {
 		GlStateManager.translate(guiLeft, guiTop, 0);
 		GlStateManager.enableBlend();
 		GlStateManager.blendFunc(GL_ONE, GL_ONE);
+		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		if (machine.getActiveSpaceBody() != null) {
 			Collection<ISpaceBodyHoloRenderer> renderers = ClientProxy.renderHandler.getStarmapRenderRegistry()
 					.getStarmapRendererCollection(machine.getActiveSpaceBody().getClass());
@@ -107,6 +108,8 @@ public class GuiStarMap extends MOGuiMachine<TileEntityMachineStarMap> {
 				}
 			}
 		}
+		GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.disableBlend();
 		GlStateManager.popMatrix();
 	}
 

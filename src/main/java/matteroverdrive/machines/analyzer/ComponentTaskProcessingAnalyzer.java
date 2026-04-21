@@ -10,6 +10,7 @@ import matteroverdrive.data.matter_network.IMatterNetworkEvent;
 import matteroverdrive.data.matter_network.ItemPattern;
 import matteroverdrive.handler.SoundHandler;
 import matteroverdrive.init.MatterOverdriveSounds;
+import net.minecraft.util.SoundEvent;
 import matteroverdrive.machines.MachineNBTCategory;
 import matteroverdrive.matter_network.components.TaskQueueComponent;
 import matteroverdrive.matter_network.tasks.MatterNetworkTaskStorePattern;
@@ -20,12 +21,15 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
 
 import java.util.EnumSet;
+import java.util.Random;
 
 public class ComponentTaskProcessingAnalyzer extends
 		TaskQueueComponent<MatterNetworkTaskStorePattern, TileEntityMachineMatterAnalyzer> implements ITickable {
-	public static final int PROGRESS_AMOUNT_PER_ITEM = 20;
-	public static final int ANALYZE_SPEED = 800;
-	public static final int ENERGY_DRAIN_PER_ITEM = 64000;
+	public static int PROGRESS_AMOUNT_PER_ITEM = 20;
+	public static int ANALYZE_SPEED = 800;
+	public static int ENERGY_DRAIN_PER_ITEM = 64000;
+	public static double FAIL_CHANCE = 0.10;
+	private final Random random = new Random();
 	public int analyzeTime;
 	private boolean isAnalyzing;
 
@@ -75,16 +79,20 @@ public class ComponentTaskProcessingAnalyzer extends
 	}
 
 	public void analyzeItem() {
-		ItemStack itemStack = machine.getStackInSlot(machine.input_slot).copy();
-		itemStack.setCount(1);
-		MatterNetworkTaskStorePattern storePattern = new MatterNetworkTaskStorePattern(itemStack,
-				PROGRESS_AMOUNT_PER_ITEM);
-		storePattern.setState(MatterNetworkTaskState.WAITING);
-		if (machine.getNetwork() != null) {
-			machine.getNetwork().post(new IMatterNetworkEvent.Task(storePattern));
-		}
-		if (storePattern.getState().belowOrEqual(MatterNetworkTaskState.WAITING)) {
-			addStorePatternTask(storePattern);
+		boolean failed = random.nextDouble() < FAIL_CHANCE * machine.getUpgradeMultiply(UpgradeTypes.Fail);
+
+		if (!failed) {
+			ItemStack itemStack = machine.getStackInSlot(machine.input_slot).copy();
+			itemStack.setCount(1);
+			MatterNetworkTaskStorePattern storePattern = new MatterNetworkTaskStorePattern(itemStack,
+					PROGRESS_AMOUNT_PER_ITEM);
+			storePattern.setState(MatterNetworkTaskState.WAITING);
+			if (machine.getNetwork() != null) {
+				machine.getNetwork().post(new IMatterNetworkEvent.Task(storePattern));
+			}
+			if (storePattern.getState().belowOrEqual(MatterNetworkTaskState.WAITING)) {
+				addStorePatternTask(storePattern);
+			}
 		}
 
 		TileEntity TE = getWorld().getTileEntity(getPos());
@@ -92,11 +100,11 @@ public class ComponentTaskProcessingAnalyzer extends
 		// Make sure at that location we don't have a muffler installed.
 		if (TE != null) {
 			TileEntityMachineMatterAnalyzer temma = (TileEntityMachineMatterAnalyzer) TE;
-
 			ItemStack stack = temma.getStackInSlot(0);
 
 			if (!(temma.getUpgradeMultiply(UpgradeTypes.Muffler) == 2d || stack.isEmpty())) {
-				SoundHandler.PlaySoundAt(getWorld(), MatterOverdriveSounds.scannerSuccess, SoundCategory.BLOCKS,
+				SoundEvent sound = failed ? MatterOverdriveSounds.scannerFail : MatterOverdriveSounds.scannerSuccess;
+				SoundHandler.PlaySoundAt(getWorld(), sound, SoundCategory.BLOCKS,
 						getPos().getX(), getPos().getY(), getPos().getZ());
 			}
 		}

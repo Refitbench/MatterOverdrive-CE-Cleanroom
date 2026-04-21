@@ -47,4 +47,9 @@ public class BlockNetworkSwitch extends MOBlockMachine<TileEntityMachineNetworkS
 	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState meta) {
 		return new TileEntityMachineNetworkSwitch();
 	}
+
+	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
 }

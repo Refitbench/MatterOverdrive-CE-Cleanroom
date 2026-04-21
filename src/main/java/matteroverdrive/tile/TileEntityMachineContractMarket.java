@@ -20,10 +20,11 @@ import net.minecraft.util.SoundEvent;
 import net.minecraft.util.WeightedRandom;
 
 import java.util.EnumSet;
+import java.util.Objects;
 
 public class TileEntityMachineContractMarket extends MOTileEntityMachine {
-	public static final int QUEST_GENERATE_DELAY_MIN = 20 * 60 * 30;
-	public static final int QUEST_GENERATE_DELAY_PER_SLOT = 20 * 60 * 5;
+	public static int QUEST_GENERATE_DELAY_MIN = 20 * 60 * 30;
+	public static int QUEST_GENERATE_DELAY_PER_SLOT = 20 * 60 * 5;
 	public static final int CONTRACT_SLOTS = 18;
 	private long lastGenerationTime;
 
@@ -58,7 +59,7 @@ public class TileEntityMachineContractMarket extends MOTileEntityMachine {
 
 	private void generateContract() {
 		Quest quest = ((WeightedRandomQuest) WeightedRandom.getRandomItem(random,
-				MatterOverdriveQuests.contractGeneration)).getQuest();
+				Objects.requireNonNull(MatterOverdriveQuests.contractGeneration))).getQuest();
 		QuestStack questStack = MatterOverdrive.QUEST_FACTORY.generateQuestStack(random, quest);
 		for (int i = 0; i < inventory.getSizeInventory(); i++) {
 			ItemStack itemStack = inventory.getSlot(i).getItem();

@@ -94,9 +94,6 @@ public abstract class RenderBeam<T extends EntityLivingBase> implements IWorldLa
 		wr.pos(0, -tickness, 0).tex(1, v).endVertex();
 		Tessellator.getInstance().draw();
 		GlStateManager.popMatrix();
-
-		// GlStateManager.enableCull();
-		// GlStateManager.disableBlend();
-		// GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 }

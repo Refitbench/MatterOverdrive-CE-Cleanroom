@@ -75,8 +75,9 @@ public class BlockChargingStation extends MOBlockMachine<TileEntityMachineChargi
 	@Override
 	public void onConfigChanged(ConfigurationHandler config) {
 		super.onConfigChanged(config);
-		TileEntityMachineChargingStation.BASE_MAX_RANGE = config.getInt("charge station range",
-				ConfigurationHandler.CATEGORY_MACHINES, 8, "The range of the Charge Station");
+		config.initMachineCategory(getTranslationKey());
+		TileEntityMachineChargingStation.BASE_MAX_RANGE = config.getMachineInt(getTranslationKey(),
+				"range", 8, "The range of the Charge Station in blocks");
 	}
 
 }

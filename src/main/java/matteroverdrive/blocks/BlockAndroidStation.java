@@ -59,6 +59,11 @@ public class BlockAndroidStation extends MOBlockMachine<TileEntityAndroidStation
 	}
 
 	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
+
+	@Override
 	@Deprecated
 	public boolean isOpaqueCube(IBlockState state) {
 		return false;

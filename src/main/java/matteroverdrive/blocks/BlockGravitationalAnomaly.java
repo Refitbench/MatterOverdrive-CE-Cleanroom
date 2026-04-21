@@ -196,5 +196,8 @@ public class BlockGravitationalAnomaly extends MOBlockContainer<TileEntityGravit
 				ConfigurationHandler.KEY_GRAVITATIONAL_ANOMALY_DEBUG_SCAN_WIREFRAME,
 				ConfigurationHandler.CATEGORY_DEBUG, false,
 				"Draw wireframe spheres for each scan band radius around every loaded anomaly. Client-side debug only.");
+		TileEntityGravitationalAnomaly.EQUALIZER_DAMAGE_RATE = config.getInt(
+				ConfigurationHandler.KEY_EQUALIZER_DAMAGE_RATE, cat, 200,
+				"How often (in ticks) an equipped Space-Time Equalizer loses 1 durability while resisting an anomaly. Set to 0 to disable durability drain.");
 	}
 }

@@ -55,7 +55,9 @@ public class RenderWeaponsBeam extends RenderBeam<EntityPlayer> {
 
 		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GlStateManager.disableBlend();
+		GlStateManager.enableLighting();
 		GlStateManager.enableCull();
+		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 
 	public void renderOthers(RenderHandler renderHandler, float ticks) {

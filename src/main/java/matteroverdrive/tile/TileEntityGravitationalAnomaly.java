@@ -26,6 +26,8 @@ import matteroverdrive.entity.player.MOPlayerCapabilityProvider;
 import matteroverdrive.fx.GravitationalAnomalyParticle;
 import matteroverdrive.init.MatterOverdriveSounds;
 import matteroverdrive.init.OverdriveBioticStats;
+import baubles.api.BaublesApi;
+import baubles.api.cap.IBaublesItemHandler;
 import matteroverdrive.items.SpacetimeEqualizer;
 import matteroverdrive.machines.MachineNBTCategory;
 import matteroverdrive.util.MOLog;
@@ -59,6 +61,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.client.FMLClientHandler;
 import net.minecraftforge.fml.relauncher.Side;
@@ -79,6 +82,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     public static int BATCH_TICK_RATE = 2;
     public static int ENTITY_SCAN_RATE = 10;
     public static int IDLE_SCAN_TICKS = 40;
+    public static int EQUALIZER_DAMAGE_RATE = 200; // ticks between equalizer durability drains per anomaly (0 = disabled)
     public static int SCAN_BAND_INNER_PCT = 15; // % of SCAN_BATCH_SIZE scanned per tick for inner band
     public static int SCAN_BAND_MID_PCT   = 30; // % of SCAN_BATCH_SIZE scanned per tick for mid band
                                                 // outer band gets the remaining (100 - inner - mid)%
@@ -109,6 +113,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
     private int breakBatchTimer = 0;
     private List<Entity> cachedEntityList = Collections.emptyList();
     private int entityScanTimer = 0;
+    private int equalizerDamageTimer = 0;
     private List<BlockPos> currentOffsets = Collections.emptyList();
     // band scanner state: A=inner(0-25%), B=mid(25-55%), C=outer(55-100%)
     private int bandSplitA = 0;
@@ -191,9 +196,7 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 		double distanceSq = entityPos.squareDistanceTo(blockPos);
 		if (distanceSq < rangeSq) {
-			if ((!Minecraft.getMinecraft().player.inventory.armorItemInSlot(2).isEmpty()
-					&& Minecraft.getMinecraft().player.inventory.armorItemInSlot(2)
-					.getItem() instanceof SpacetimeEqualizer)
+			if (playerHasEqualizer(Minecraft.getMinecraft().player)
 					|| Minecraft.getMinecraft().player.capabilities.isCreativeMode
 					|| Minecraft.getMinecraft().player.isSpectator()
 					|| MOPlayerCapabilityProvider.GetAndroidCapability(Minecraft.getMinecraft().player)
@@ -219,6 +222,11 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 			cachedEntityList = world.getEntitiesWithinAABB(Entity.class, cachedGravitationBB);
 		}
 
+		if (EQUALIZER_DAMAGE_RATE > 0 && ++equalizerDamageTimer >= EQUALIZER_DAMAGE_RATE) {
+			equalizerDamageTimer = 0;
+			damageEqualizersInRange();
+		}
+
 		for (Entity entity : cachedEntityList) {
 			if (entity.isDead) continue;
 			if (entity instanceof IGravityEntity) {
@@ -239,6 +247,50 @@ public class TileEntityGravitationalAnomaly extends MOTileEntity implements ISca
 
 			applyGravitationToEntity(entity, scaledDir);
 		}
+	}
+
+	private void damageEqualizersInRange() {
+		for (Entity entity : cachedEntityList) {
+			if (entity.isDead || !(entity instanceof EntityPlayer)) continue;
+			EntityPlayer player = (EntityPlayer) entity;
+			if (player.capabilities.isCreativeMode || player.isSpectator()) continue;
+			if (entity.getPositionVector().squareDistanceTo(cachedCenter) > cachedRangeSq) continue;
+
+			// Chest slot takes priority (matches playerHasEqualizer check order)
+			ItemStack chest = player.inventory.armorItemInSlot(2);
+			if (!chest.isEmpty() && chest.getItem() instanceof SpacetimeEqualizer) {
+				chest.damageItem(1, player);
+				continue;
+			}
+			// Bauble slot fallback
+			if (Loader.isModLoaded("baubles")) {
+				IBaublesItemHandler baubles = BaublesApi.getBaublesHandler(player);
+				if (baubles != null) {
+					for (int i = 0; i < baubles.getSlots(); i++) {
+						ItemStack s = baubles.getStackInSlot(i);
+						if (!s.isEmpty() && s.getItem() instanceof SpacetimeEqualizer) {
+							s.damageItem(1, player);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private static boolean playerHasEqualizer(EntityPlayer player) {
+		ItemStack chest = player.inventory.armorItemInSlot(2);
+		if (!chest.isEmpty() && chest.getItem() instanceof SpacetimeEqualizer) return true;
+		if (Loader.isModLoaded("baubles")) {
+			IBaublesItemHandler baubles = BaublesApi.getBaublesHandler(player);
+			if (baubles != null) {
+				for (int i = 0; i < baubles.getSlots(); i++) {
+					ItemStack s = baubles.getStackInSlot(i);
+					if (!s.isEmpty() && s.getItem() instanceof SpacetimeEqualizer) return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void applyGravitationToEntity(Entity entity, Vec3d scaledDir) {

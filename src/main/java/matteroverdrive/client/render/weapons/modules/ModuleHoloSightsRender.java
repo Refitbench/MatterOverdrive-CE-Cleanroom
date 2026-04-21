@@ -70,9 +70,9 @@ public class ModuleHoloSightsRender extends ModuleRenderAbstract {
 			GlStateManager.disableBlend();
 			GlStateManager.enableLighting();
 			RenderUtils.enableLightmap();
+			GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		}
 	}
-
 	@Override
 	public void transformWeapon(WeaponMetadataSection weaponMeta, ItemStack weaponStack, ItemStack moduleStack,
 			float ticks, float zoomValue) {

@@ -67,6 +67,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
+    // Baubles
+    compileOnly rfg.deobf('curse.maven:baubles-227083:2518667')
+
     // WAILA/Hwyla (local jar in libs/)
     compileOnly rfg.deobf(files("${rootDir}/libs/Hwyla-1.8.26-B41_1.12.2.jar"))
 
@@ -75,7 +78,8 @@ dependencies {
     // runtimeOnly rfg.deobf('mezz.jei:jei_1.12.2:4.8.5.138')
 
     // HEI - Had Enough Items (local jar in libs/; superset of JEI API)
-    compileOnly rfg.deobf(files("${rootDir}/libs/HadEnoughItems_1.12.2-4.30.0.jar"))
+    compileOnly rfg.deobf(files("${rootDir}/libs/HadEnoughItems_1.12.2-4.30.1.jar"))
+    runtimeOnly rfg.deobf(files("${rootDir}/libs/HadEnoughItems_1.12.2-4.30.1.jar"))
 
     // OpenComputers
     compileOnly rfg.deobf('li.cil.oc:OpenComputers:MC1.12.2-1.7.5.221')

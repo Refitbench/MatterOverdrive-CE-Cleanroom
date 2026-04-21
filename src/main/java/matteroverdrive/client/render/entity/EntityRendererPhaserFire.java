@@ -94,9 +94,13 @@ public class EntityRendererPhaserFire extends Render {
 		}
 
 		// GlStateManager.disableDepth();
+		GlStateManager.enableCull();
 		GlStateManager.enableLighting();
 		GlStateManager.disableRescaleNormal();
 		GlStateManager.popMatrix();
+		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.disableBlend();
+		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderUtils.enableLightmap();
 	}
 

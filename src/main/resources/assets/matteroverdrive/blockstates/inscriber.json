@@ -8,6 +8,10 @@
     "particle": "matteroverdrive:blocks/base_stripes"
   },
   "variants": {
+    "active": {
+      "true":  {},
+      "false": {}
+    },
     "facing":{
 	
       "north":{

@@ -29,4 +29,9 @@ public class BlockFusionReactorIO extends MOBlockMachine<TileEntityFusionReactor
 	public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
 		return new TileEntityFusionReactorPart();
 	}
+
+	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
 }

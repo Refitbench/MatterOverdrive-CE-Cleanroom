@@ -53,6 +53,11 @@ public class BlockStarMap extends MOBlockMachine<TileEntityMachineStarMap> {
 	}
 
 	@Override
+	protected boolean hasMachineSound() {
+		return false;
+	}
+
+	@Override
 	@Deprecated
 	public boolean isOpaqueCube(IBlockState state) {
 		return false;

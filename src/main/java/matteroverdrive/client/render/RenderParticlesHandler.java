@@ -190,6 +190,7 @@ public class RenderParticlesHandler implements IWorldLastRenderer, ITextureMapPo
 						break;
 					case LinesAdditive:
 						GlStateManager.enableTexture2D();
+						GL11.glLineWidth(1.0f);
 						break;
 					}
 				}
