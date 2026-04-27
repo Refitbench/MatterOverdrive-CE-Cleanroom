@@ -4,6 +4,9 @@
 - Corrected the project and update URLs.
 - An attempt of semi-automated FML changelog / update json generation.
 
+### Changed
+- Made baubles a soft dependancy. SpaceTimeEqualizer default chestpiece with optional bauble.
+
 ## [1.0.1] - 2026-03-31
 - First build under Refitbench.
 

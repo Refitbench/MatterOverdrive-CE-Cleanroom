@@ -28,6 +28,7 @@ Although it may seem overpowered, Matter Overdrive takes a more realistic approa
 * New Recharge Station effects and sounds.
 * New Inscriber effects and sounds.
 * Improved Android performance, cache unlocks and power states.
+* Space Time Equalizer now has (optional) bauble support.
 
 ## Switching from MO:CE or MO:Legacy to MO:Refit
 If you are coming from MO:CE and have no current setups built, switch is fairly simple, you will just see some incomplete items removed from the save. If you DO have setups, the following is important.
