@@ -8,6 +8,7 @@ import org.lwjgl.input.Keyboard;
 import baubles.api.BaubleType;
 import baubles.api.IBauble;
 import matteroverdrive.MatterOverdrive;
+import net.minecraftforge.fml.common.Optional;
 import matteroverdrive.Reference;
 import matteroverdrive.api.internal.ItemModelProvider;
 import matteroverdrive.client.ClientUtil;
@@ -33,6 +34,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 
+@Optional.Interface(iface = "baubles.api.IBauble", modid = "baubles")
 public class SpacetimeEqualizer extends ItemArmor implements ItemModelProvider, IBauble, IConfigSubscriber {
 	public static boolean DAMPEN_MOVEMENT = true;
 	public static int MAX_DURABILITY = 240;
@@ -98,11 +100,13 @@ public class SpacetimeEqualizer extends ItemArmor implements ItemModelProvider, 
 
 	// --- IBauble ---
 
+	@Optional.Method(modid = "baubles")
 	@Override
 	public BaubleType getBaubleType(ItemStack stack) {
 		return BaubleType.BODY;
 	}
 
+	@Optional.Method(modid = "baubles")
 	@Override
 	public void onWornTick(ItemStack stack, EntityLivingBase player) {
 		if (player instanceof EntityPlayer) {
