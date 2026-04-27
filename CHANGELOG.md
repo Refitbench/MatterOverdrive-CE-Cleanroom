@@ -1,5 +1,5 @@
 # Changelog
-## [1.0.2] - 
+## [1.0.2] - 2026-04-27
 ### Fixed
 - Corrected the project and update URLs.
 - An attempt of semi-automated FML changelog / update json generation.
