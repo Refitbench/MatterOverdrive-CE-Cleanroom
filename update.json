@@ -1,10 +1,11 @@
 {
     "homepage": "https://www.curseforge.com/minecraft/mc-mods/matteroverdrive-refitted",
     "1.12.2": {
-        "1.0.1": "- Initial Refit Release\n- See full changelog on Github."
+        "1.0.1": "- Initial Refit Release\n- See full changelog on Github.",
+        "1.0.2": "- 2026-04-27\n### Fixed\n- Corrected the project and update URLs.\n- An attempt of semi-automated FML changelog / update json generation.\n### Changed\n- Made baubles a soft dependancy. SpaceTimeEqualizer default chestpiece with optional bauble."
     },
     "promos": {
-        "1.12.2-latest": "1.0.1",
-        "1.12.2-recommended": "1.0.1"
+        "1.12.2-latest": "1.0.2",
+        "1.12.2-recommended": "1.0.2"
     }
 }
