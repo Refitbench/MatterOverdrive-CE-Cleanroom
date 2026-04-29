@@ -1,7 +1,11 @@
 # Changelog
-## [1.0.3] -
+## [1.0.3] - 2026-04-28
 ### Fixed
 - Fixed natural and player spawned androids never attacking.
+- Fixed some anomaly render compatability with shaders.
+
+### Changed
+- Switched from github based update URL to a curseforge related API, get latest upload.
 
 ## [1.0.2] - 2026-04-27
 ### Fixed
