@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.4] - 2026-04-30
+### Fixed
+- Fixed entity registration for mod integration (DeepMobEvolution). Moved from preInit to postInit.
+
 ## [1.0.3] - 2026-04-28
 ### Fixed
 - Fixed natural and player spawned androids never attacking.
