@@ -2,6 +2,7 @@
 - Rework android AI?
 -   "borg" might be passive unless provoked outside of its home range.
 -   Currently androids without home attack on sight.
+-   Buildable android companion?
 
 - Fix / Overhaul spacetime accelerator
 
@@ -34,6 +35,8 @@
 -   "piramid" - just a texture, looks to be a drive like object?
 -   "suppy_crate" - just a texture, looks to be some supply like crate.
 -   "box" - just a texture, similar to supply crate more simple looking.
+-   Star Map - Frameworks exist, but alot of missing features and no roadmap for it.
+-       Androids items to be sent out for xyz reason? A use for extra parts.
 
 - Potential for implementing a power provider and matter provider block to attach to networks.
 
