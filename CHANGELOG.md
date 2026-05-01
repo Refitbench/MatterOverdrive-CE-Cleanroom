@@ -1,4 +1,10 @@
 # Changelog
+## [1.0.5] - 2026-04-30
+## Fixed
+- Fixed FML version check (For real this time I swears).
+## Changed
+- Updated CE URL's to Refitted URL.
+
 ## [1.0.4] - 2026-04-30
 ### Fixed
 - Fixed entity registration for mod integration (DeepMobEvolution). Moved from preInit to postInit.
