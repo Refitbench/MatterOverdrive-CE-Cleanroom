@@ -1,17 +1,24 @@
 package matteroverdrive.blocks;
 
+import matteroverdrive.api.internal.IItemBlockFactory;
 import matteroverdrive.api.wrench.IDismantleable;
 import matteroverdrive.blocks.includes.MOBlockMachine;
 import matteroverdrive.init.MatterOverdriveSounds;
+import matteroverdrive.items.CrateBlockItem;
 import matteroverdrive.tile.TileEntityNewTritaniumCrate;
 import matteroverdrive.util.MOBlockHelper;
+import matteroverdrive.util.MOInventoryHelper;
+import matteroverdrive.util.MatterHelper;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraftforge.oredict.OreDictionary;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -27,7 +34,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 
-public class BlockNewTritaniumCrate extends MOBlockMachine<TileEntityNewTritaniumCrate> implements IDismantleable {
+public class BlockNewTritaniumCrate extends MOBlockMachine<TileEntityNewTritaniumCrate> implements IDismantleable, IItemBlockFactory {
 	private static final AxisAlignedBB BOX_NORTH_SOUTH = new AxisAlignedBB(0, 0, 2 / 16d, 1, 12 / 16d, 14 / 16d);
 	private static final AxisAlignedBB BOX_EAST_WEST = new AxisAlignedBB(2 / 16d, 0, 0, 14 / 16d, 12 / 16d, 1);
 
@@ -103,6 +110,30 @@ public class BlockNewTritaniumCrate extends MOBlockMachine<TileEntityNewTritaniu
 		}
 	}
 
+	private static final String[] DYE_ORE_NAMES = {
+		"dyeBlack", "dyeRed", "dyeGreen", "dyeBrown", "dyeBlue", "dyePurple",
+		"dyeCyan", "dyeLightGray", "dyeGray", "dyePink", "dyeLime", "dyeYellow",
+		"dyeLightBlue", "dyeMagenta", "dyeOrange", "dyeWhite"
+	};
+
+	private static final Color[] DYE_COLOR_MAP = {
+		Color.BLACK, Color.RED, Color.GREEN, Color.BROWN, Color.BLUE, Color.PURPLE,
+		Color.CYAN, Color.LIGHTGRAY, Color.GRAY, Color.PINK, Color.LIME, Color.YELLOW,
+		Color.LIGHTBLUE, Color.MAGENTA, Color.ORANGE, Color.WHITE
+	};
+
+	@Nullable
+	private static Color getDyeColor(ItemStack stack) {
+		for (int i = 0; i < DYE_ORE_NAMES.length; i++) {
+			for (ItemStack oreStack : OreDictionary.getOres(DYE_ORE_NAMES[i])) {
+				if (OreDictionary.itemMatches(oreStack, stack, false)) {
+					return DYE_COLOR_MAP[i];
+				}
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
 			EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
@@ -113,29 +144,10 @@ public class BlockNewTritaniumCrate extends MOBlockMachine<TileEntityNewTritaniu
 		ItemStack currentitem = playerIn.getHeldItem(EnumHand.MAIN_HAND);
 
 		if (!currentitem.isEmpty()) {
-			// Compare it against the base dye item.
-			Item dye = new ItemStack(Items.DYE, 1).getItem();
+			boolean isBucket = currentitem.getItem().equals(Items.WATER_BUCKET);
+			Color dyeColor = isBucket ? Color.BASE : getDyeColor(currentitem);
 
-			if (currentitem.getItem().equals(dye) || currentitem.getItem().equals(Items.WATER_BUCKET)) {
-				int curDyeColor;
-
-				if (currentitem.getItem().equals(Items.WATER_BUCKET)) {
-					curDyeColor = 0;
-				} else {
-					curDyeColor = currentitem.getItemDamage();
-
-					// Convert bonemeal to white.
-					if (curDyeColor == 15) {
-						curDyeColor = 17;
-					}
-
-					// Convert ink sac to black.
-					if (curDyeColor == 0) {
-						curDyeColor = 16;
-					}
-				}
-
-				Color dyeColor = Color.values()[curDyeColor];
+			if (dyeColor != null) {
 				IBlockState coloredState = state.withProperty(COLOR, dyeColor);
 				worldIn.setBlockState(pos, coloredState, 3);
 
@@ -150,17 +162,15 @@ public class BlockNewTritaniumCrate extends MOBlockMachine<TileEntityNewTritaniu
 					}
 				}
 
-				if (currentitem.getItem().equals(dye)) {
-					if (!playerIn.capabilities.isCreativeMode) {
-						currentitem.setCount(currentitem.getCount() - 1);
-					}
-				} else {
-					if (!playerIn.capabilities.isCreativeMode) {
+				if (!playerIn.capabilities.isCreativeMode) {
+					if (isBucket) {
 						// I'm worried about a memory leak here. What happens to the item that WAS in
 						// the main hand?
 						// Buckets are also not stackable, so no need to worry about having more than
 						// one in the main hand.
 						playerIn.setHeldItem(EnumHand.MAIN_HAND, new ItemStack(Items.BUCKET, 1));
+					} else {
+						currentitem.setCount(currentitem.getCount() - 1);
 					}
 				}
 
@@ -190,18 +200,62 @@ public class BlockNewTritaniumCrate extends MOBlockMachine<TileEntityNewTritaniu
 	}
 
 	@Override
-	public ArrayList<ItemStack> dismantleBlock(EntityPlayer player, World world, BlockPos pos, boolean returnDrops) {
-		TileEntity tile = world.getTileEntity(pos);
-
+	public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+		TileEntity tile = worldIn.getTileEntity(pos);
 		if (tile instanceof TileEntityNewTritaniumCrate) {
-			IBlockState state = world.getBlockState(pos);
-
-			state.getBlock().harvestBlock(world, player, pos, state, world.getTileEntity(pos), ItemStack.EMPTY);
-
-			state.getBlock().removedByPlayer(state, world, pos, player, false);
+			MatterHelper.dropInventory(worldIn, (TileEntityNewTritaniumCrate) tile, pos);
+			((TileEntityNewTritaniumCrate) tile).getInventory().clear();
 		}
 
-		return new ArrayList<>();
+		super.breakBlock(worldIn, pos, state);
+	}
+
+	@Override
+	public ArrayList<ItemStack> dismantleBlock(EntityPlayer player, World world, BlockPos pos, boolean returnDrops) {
+		ArrayList<ItemStack> items = new ArrayList<>();
+		TileEntity tile = world.getTileEntity(pos);
+
+		// Build a block ItemStack with the crate's inventory + color serialized into NBT.
+		ItemStack blockItem = getNBTDrop(world, pos,
+				tile instanceof TileEntityNewTritaniumCrate ? (TileEntityNewTritaniumCrate) tile : null);
+		items.add(blockItem);
+
+		// Clear the live inventory so breakBlock() does not also drop the items
+		if (tile instanceof TileEntityNewTritaniumCrate) {
+			((TileEntityNewTritaniumCrate) tile).getInventory().clear();
+		}
+
+		IBlockState blockState = world.getBlockState(pos);
+		boolean flag = blockState.getBlock().removedByPlayer(blockState, world, pos, player, true);
+		super.breakBlock(world, pos, blockState);
+
+		if (flag) {
+			blockState.getBlock().onPlayerDestroy(world, pos, blockState);
+		}
+
+		if (!returnDrops) {
+			Block.spawnAsEntity(world, pos, blockItem);
+		} else {
+			MOInventoryHelper.insertItemStackIntoInventory(player.inventory, blockItem, EnumFacing.DOWN);
+		}
+
+		return items;
+	}
+
+	@Override
+	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+		super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+
+		// Trigger a render update so the placed crate shows the correct color.
+		if (stack.hasTagCompound() && stack.getTagCompound().hasKey("Color")) {
+			worldIn.markBlockRangeForRenderUpdate(pos, pos);
+			worldIn.notifyBlockUpdate(pos, state, state, 3);
+		}
+	}
+
+	@Override
+	public ItemBlock createItemBlock() {
+		return new CrateBlockItem(this);
 	}
 
 	@Nonnull

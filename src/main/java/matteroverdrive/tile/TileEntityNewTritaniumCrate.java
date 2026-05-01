@@ -128,13 +128,19 @@ public class TileEntityNewTritaniumCrate extends MOTileEntity implements IInvent
 			itemStack.setTagCompound(new NBTTagCompound());
 		}
 
-		inventory.writeToNBT(itemStack.getTagCompound(), true);
+		NBTTagCompound tag = itemStack.getTagCompound();
+		inventory.writeToNBT(tag, true);
+		tag.setInteger("Color", color);
 	}
 
 	@Override
 	public void readFromPlaceItem(ItemStack itemStack) {
 		if (itemStack.hasTagCompound()) {
-			inventory.readFromNBT(itemStack.getTagCompound());
+			NBTTagCompound tag = itemStack.getTagCompound();
+			inventory.readFromNBT(tag);
+			if (tag.hasKey("Color")) {
+				color = tag.getInteger("Color");
+			}
 		}
 	}
 

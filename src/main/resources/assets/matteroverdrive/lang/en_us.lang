@@ -263,8 +263,8 @@ machine.tooltip.energy=Charged
 
 ## Tritanium Crate ##
 
-
 tile.new_tritanium_crate.name=Tritanium Crate
+tile.new_tritanium_crate.details=A high tech large storage crate, keeps its inventory when picked up with a wrench. Can apply dye directly to color.
 
 ## Entities ##
 
