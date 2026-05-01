@@ -1,4 +1,11 @@
 # Changelog
+## [1.0.6] - 2026-04-30
+### Fixed
+- Tritanium crates not dropping items when destroyed. Now saves on wrench pickup, otherwise drops them.
+- Tritanium crates now accept dye through oreDict entries, modded dye should now work.
+- Tritanium crates preserve dye color when picked up with a wrench.
+- Added missing shift tooltip to tritanium crate.
+
 ## [1.0.5] - 2026-04-30
 ## Fixed
 - Fixed FML version check (For real this time I swears).
