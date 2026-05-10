@@ -104,6 +104,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private IBioticStat activeStat;
 	private NBTTagCompound unlocked;
 	private final Map<String, Integer> unlockedLevels = new HashMap<>();
+	private final List<IBioticStat> cachedUnlockedStats = new ArrayList<>();
 	private int maxEnergy;
 	private boolean isAndroid;
 	private long lastBatterySyncTick = -20L;
@@ -414,6 +415,16 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		for (Object key : unlocked.getKeySet()) {
 			unlockedLevels.put(key.toString(), unlocked.getInteger(key.toString()));
 		}
+		rebuildUnlockedStatCache();
+	}
+
+	private void rebuildUnlockedStatCache() {
+		cachedUnlockedStats.clear();
+		for (IBioticStat stat : MatterOverdrive.STAT_REGISTRY.getStats()) {
+			if (unlockedLevels.getOrDefault(stat.getUnlocalizedName(), 0) > 0) {
+				cachedUnlockedStats.add(stat);
+			}
+		}
 	}
 
 	public boolean tryUnlock(IBioticStat stat, int level) {
@@ -429,6 +440,11 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		clearAllStatAttributeModifiers();
 		this.unlocked.setInteger(stat.getUnlocalizedName(), level);
 		unlockedLevels.put(stat.getUnlocalizedName(), level);
+		if (level > 0 && !cachedUnlockedStats.contains(stat)) {
+			cachedUnlockedStats.add(stat);
+		} else if (level <= 0) {
+			cachedUnlockedStats.remove(stat);
+		}
 		stat.onUnlock(this, level);
 		sync(EnumSet.of(DataType.STATS));
 		manageStatAttributeModifiers();
@@ -553,6 +569,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		int xp = getResetXPRequired();
 		this.unlocked = new NBTTagCompound();
 		unlockedLevels.clear();
+		cachedUnlockedStats.clear();
 		sync(EnumSet.of(DataType.STATS));
 		clearAllStatAttributeModifiers();
 		return xp;
@@ -574,6 +591,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			stat.onUnlearn(this, level);
 			unlocked.removeTag(stat.getUnlocalizedName());
 			unlockedLevels.remove(stat.getUnlocalizedName());
+			cachedUnlockedStats.remove(stat);
 			sync(EnumSet.of(DataType.STATS));
 			manageStatAttributeModifiers();
 		}
@@ -617,15 +635,13 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		if (isAndroid()) {
 			manageGlitch();
 
-			for (IBioticStat stat : MatterOverdrive.STAT_REGISTRY.getStats()) {
+			for (IBioticStat stat : cachedUnlockedStats) {
 				int unlockedLevel = getUnlockedLevel(stat);
-				if (unlockedLevel > 0) {
-					if (stat.isEnabled(this, unlockedLevel)) {
-						stat.changeAndroidStats(this, unlockedLevel, true);
-						stat.onAndroidUpdate(this, unlockedLevel);
-					} else {
-						stat.changeAndroidStats(this, unlockedLevel, false);
-					}
+				if (stat.isEnabled(this, unlockedLevel)) {
+					stat.changeAndroidStats(this, unlockedLevel, true);
+					stat.onAndroidUpdate(this, unlockedLevel);
+				} else {
+					stat.changeAndroidStats(this, unlockedLevel, false);
 				}
 			}
 		}
@@ -882,7 +898,9 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	private void managePotionEffects() {
 		if (isAndroid() && REMOVE_POTION_EFFECTS) {
-			for (PotionEffect potionEffect : new ArrayList<>(player.getActivePotionEffects())) {
+			Collection<PotionEffect> active = player.getActivePotionEffects();
+			if (active.isEmpty()) return;
+			for (PotionEffect potionEffect : new ArrayList<>(active)) {
 				if (!POTION_REMOVAL_BLACKLIST.contains(potionEffect.getPotion().getRegistryName().toString())) {
 					player.removePotionEffect(potionEffect.getPotion());
 				}
