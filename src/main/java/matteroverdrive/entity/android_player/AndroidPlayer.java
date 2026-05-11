@@ -85,6 +85,12 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private final static int BUILTIN_ENERGY_TRANSFER = 1024;
 	private final static int ENERGY_WATCHER_DEFAULT = 29;
 	private final static int ENERGY_PER_JUMP = 512;
+	private static final DamageSource TRANSFORMATION_DAMAGE;
+	static {
+		TRANSFORMATION_DAMAGE = new DamageSource("android_transformation");
+		TRANSFORMATION_DAMAGE.setDamageIsAbsolute();
+		TRANSFORMATION_DAMAGE.setDamageBypassesArmor();
+	}
 	private final static AttributeModifier outOfPowerSpeedModifier = new AttributeModifier(
 			UUID.fromString("ec778ddc-9711-498b-b9aa-8e5adc436e00"), "Android Out of Power", -0.5, 2).setSaved(false);
 	private static final List<IBioticStat> wheelStats = new ArrayList<>();
@@ -949,10 +955,6 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private void manageTurning() {
 		short turnningTime = getAndroidEffects().getEffectShort(EFFECT_TURNNING);
 		if (turnningTime > 0) {
-			DamageSource fake = new DamageSource("android_transformation");
-			fake.setDamageIsAbsolute();
-			fake.setDamageBypassesArmor();
-
 			getAndroidEffects().updateEffect(EFFECT_TURNNING, --turnningTime);
 			// getPlayer().addPotionEffect(new PotionEffect(Potion.getPotionById(9),
 			// AndroidPlayer.TRANSFORM_TIME));
@@ -961,7 +963,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			getPlayer().addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, AndroidPlayer.TRANSFORM_TIME));
 			getPlayer().addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, AndroidPlayer.TRANSFORM_TIME));
 			if (turnningTime % 40 == 0) {
-				player.attackEntityFrom(fake, 0.1f);
+				player.attackEntityFrom(TRANSFORMATION_DAMAGE, 0.1f);
 				playGlitchSound(this, player.world.rand, 0.2f);
 			}
 
@@ -970,7 +972,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 				playGlitchSound(this, player.world.rand, 0.8f);
 				if (!player.capabilities.isCreativeMode && !player.world.getWorldInfo().isHardcoreModeEnabled()
 						&& TRANSFORMATION_DEATH) {
-					player.attackEntityFrom(fake, Integer.MAX_VALUE);
+					player.attackEntityFrom(TRANSFORMATION_DAMAGE, Integer.MAX_VALUE);
 					player.setDead();
 				}
 			}
