@@ -44,6 +44,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.*;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
@@ -187,14 +188,9 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	public static boolean isVisibleOnMinimap(EntityLivingBase entityLivingBase, EntityPlayer player,
 			Vec3d relativePosition) {
-		return !entityLivingBase.isInvisible() && Math.abs(relativePosition.y) < 16
-				&& isInRangeToRenderDist(entityLivingBase, 256);
+		return !entityLivingBase.isInvisible() && Math.abs(relativePosition.y) < 16;
 	}
 
-	private static boolean isInRangeToRenderDist(EntityLivingBase entity, double distance) {
-		double d1 = entity.getEntityBoundingBox().getAverageEdgeLength() * 64;
-		return distance < d1 * d1;
-	}
 
 	@SideOnly(Side.CLIENT)
 	public static void setMinimapEntityInfo(List<MinimapEntityInfo> entityInfo) {
@@ -758,23 +754,23 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	}
 
 	private void manageMinimapInfo() {
-		if (getPlayer() instanceof EntityPlayerMP && getPlayer().world.getWorldTime() % MINIMAP_SEND_TIMEOUT == 0) {
-			List<MinimapEntityInfo> entityList = new ArrayList<>();
-			for (Object entityObject : getPlayer().world.loadedEntityList) {
-				if (entityObject instanceof EntityLivingBase) {
-					if (isVisibleOnMinimap((EntityLivingBase) entityObject, player,
-							new Vec3d(((EntityLivingBase) entityObject).posX, ((EntityLivingBase) entityObject).posY,
-									((EntityLivingBase) entityObject).posZ)
-									.subtract(new Vec3d(player.posX, player.posY, player.posZ)))
-							&& MinimapEntityInfo.hasInfo((EntityLivingBase) entityObject, player)) {
-						entityList.add(new MinimapEntityInfo((EntityLivingBase) entityObject, getPlayer()));
-					}
-				}
-			}
+		int minimapLevel = getUnlockedLevel(OverdriveBioticStats.minimap);
+		if (minimapLevel <= 0 || !OverdriveBioticStats.minimap.isEnabled(this, minimapLevel)) return;
+		if (!(getPlayer() instanceof EntityPlayerMP)) return;
+		long staggerOffset = Math.floorMod(player.getEntityId(), MINIMAP_SEND_TIMEOUT);
+		if (getPlayer().world.getWorldTime() % MINIMAP_SEND_TIMEOUT != staggerOffset) return;
 
-			if (entityList.size() > 0) {
-				MatterOverdrive.NETWORK.sendTo(new PacketSendMinimapInfo(entityList), (EntityPlayerMP) getPlayer());
+		AxisAlignedBB searchArea = player.getEntityBoundingBox().grow(64, 16, 64);
+		List<EntityLivingBase> nearby = player.world.getEntitiesWithinAABB(EntityLivingBase.class, searchArea);
+		List<MinimapEntityInfo> entityList = new ArrayList<>();
+		for (EntityLivingBase entity : nearby) {
+			if (!entity.isInvisible() && MinimapEntityInfo.hasInfo(entity, player)) {
+				entityList.add(new MinimapEntityInfo(entity, getPlayer()));
 			}
+		}
+
+		if (!entityList.isEmpty()) {
+			MatterOverdrive.NETWORK.sendTo(new PacketSendMinimapInfo(entityList), (EntityPlayerMP) getPlayer());
 		}
 	}
 
