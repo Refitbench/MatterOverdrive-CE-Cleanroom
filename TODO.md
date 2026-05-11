@@ -11,6 +11,8 @@
 
 - Finish the Cyberware integration.
 
+- Future Atomic Science integration?
+
 - Overhaul the Transporter.
 -   Currently lacks effects that legacy had.
 - Implement a Comm Badge and Teleporter Controller, the comm badge can link to the controller and allow for teleportation back home from a configurable distance.
