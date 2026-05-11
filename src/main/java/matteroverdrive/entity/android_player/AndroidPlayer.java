@@ -110,6 +110,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private boolean isAndroid;
 	private long lastBatterySyncTick = -20L;
 	private int cachedEnergyStored = -1;
+	private int cachedMaxEnergy = -1;
 	private boolean bionicSlotsDirty = true;
 	private boolean hasRunOutOfPower;
 	private final AndroidEffects androidEffects;
@@ -121,12 +122,14 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			public void setInventorySlotContents(int slot, ItemStack item) {
 				super.setInventorySlotContents(slot, item);
 				bionicSlotsDirty = true;
+				cachedMaxEnergy = -1;
 			}
 
 			@Override
 			@Nonnull
 			public ItemStack decrStackSize(int slotId, int size) {
 				bionicSlotsDirty = true;
+				cachedMaxEnergy = -1;
 				return super.decrStackSize(slotId, size);
 			}
 
@@ -134,6 +137,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			@Nonnull
 			public ItemStack removeStackFromSlot(int index) {
 				bionicSlotsDirty = true;
+				cachedMaxEnergy = -1;
 				return super.removeStackFromSlot(index);
 			}
 		};
@@ -462,11 +466,12 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 
 	@Override
 	public int getMaxEnergyStored() {
+		if (cachedMaxEnergy >= 0) return cachedMaxEnergy;
 		if (getStackInSlot(ENERGY_SLOT) != null
 				&& getStackInSlot(ENERGY_SLOT).hasCapability(CapabilityEnergy.ENERGY, null)) {
-			return (getStackInSlot(ENERGY_SLOT).getCapability(CapabilityEnergy.ENERGY, null)).getMaxEnergyStored();
+			return cachedMaxEnergy = (getStackInSlot(ENERGY_SLOT).getCapability(CapabilityEnergy.ENERGY, null)).getMaxEnergyStored();
 		} else {
-			return maxEnergy;
+			return cachedMaxEnergy = maxEnergy;
 		}
 	}
 
@@ -796,7 +801,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	private void manageCharging() {
 		//// TODO: 3/24/2016 Add support for off hand
 		ItemStack heldItem = player.getHeldItem(EnumHand.MAIN_HAND);
-		if (player != null && player.isSneaking() && !heldItem.isEmpty()
+		if (player.isSneaking() && !heldItem.isEmpty()
 				&& (heldItem.getItem() == MatterOverdrive.ITEMS.battery
 						|| heldItem.getItem() == MatterOverdrive.ITEMS.hc_battery)) {
 			int freeEnergy = getMaxEnergyStored() - getEnergyStored();
@@ -1010,8 +1015,9 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	}
 
 	public void onPlayerRespawn() {
-		while (getEnergyStored() < RECHARGE_AMOUNT_ON_RESPAWN) {
-			receiveEnergy(RECHARGE_AMOUNT_ON_RESPAWN, false);
+		int deficit = RECHARGE_AMOUNT_ON_RESPAWN - getEnergyStored();
+		if (deficit > 0) {
+			receiveEnergy(deficit, false);
 		}
 	}
 
