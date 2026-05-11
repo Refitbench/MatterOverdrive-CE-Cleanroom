@@ -958,10 +958,14 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			getAndroidEffects().updateEffect(EFFECT_TURNNING, --turnningTime);
 			// getPlayer().addPotionEffect(new PotionEffect(Potion.getPotionById(9),
 			// AndroidPlayer.TRANSFORM_TIME));
-			getPlayer().addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, AndroidPlayer.TRANSFORM_TIME, 1));
-			getPlayer().addPotionEffect(new PotionEffect(MobEffects.HUNGER, AndroidPlayer.TRANSFORM_TIME));
-			getPlayer().addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, AndroidPlayer.TRANSFORM_TIME));
-			getPlayer().addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, AndroidPlayer.TRANSFORM_TIME));
+			if (!getPlayer().isPotionActive(MobEffects.SLOWNESS))
+				getPlayer().addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, turnningTime, 1));
+			if (!getPlayer().isPotionActive(MobEffects.HUNGER))
+				getPlayer().addPotionEffect(new PotionEffect(MobEffects.HUNGER, turnningTime));
+			if (!getPlayer().isPotionActive(MobEffects.WEAKNESS))
+				getPlayer().addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, turnningTime));
+			if (!getPlayer().isPotionActive(MobEffects.BLINDNESS))
+				getPlayer().addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, turnningTime));
 			if (turnningTime % 40 == 0) {
 				player.attackEntityFrom(TRANSFORMATION_DAMAGE, 0.1f);
 				playGlitchSound(this, player.world.rand, 0.2f);
