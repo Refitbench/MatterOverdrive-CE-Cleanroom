@@ -482,6 +482,12 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	}
 
 	public int receiveEnergy(int amount, boolean simulate) {
+		return receiveEnergyInternal(amount, simulate, BUILTIN_ENERGY_TRANSFER);
+	}
+
+	// cap applies only to the DataManager path; battery items use their own limit.
+	// Pass Integer.MAX_VALUE to bypass the throttle (e.g. respawn recharge).
+	private int receiveEnergyInternal(int amount, boolean simulate, int cap) {
 		int energyReceived;
 		if (getStackInSlot(ENERGY_SLOT) != null
 				&& getStackInSlot(ENERGY_SLOT).hasCapability(CapabilityEnergy.ENERGY, null)) {
@@ -497,7 +503,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 			}
 		} else {
 			int energy = this.player.getDataManager().get(ENERGY);
-			energyReceived = Math.min(Math.min(getMaxEnergyStored() - energy, amount), BUILTIN_ENERGY_TRANSFER);
+			energyReceived = Math.min(Math.min(getMaxEnergyStored() - energy, amount), cap);
 
 			if (!simulate) {
 				energy += energyReceived;
@@ -1023,7 +1029,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	public void onPlayerRespawn() {
 		int deficit = RECHARGE_AMOUNT_ON_RESPAWN - getEnergyStored();
 		if (deficit > 0) {
-			receiveEnergy(deficit, false);
+			receiveEnergyInternal(deficit, false, Integer.MAX_VALUE);
 		}
 	}
 
