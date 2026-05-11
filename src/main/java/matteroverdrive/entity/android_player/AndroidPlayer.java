@@ -986,8 +986,6 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 					player.setDead();
 				}
 			}
-
-			sync(EnumSet.of(DataType.EFFECTS));
 		}
 	}
 
