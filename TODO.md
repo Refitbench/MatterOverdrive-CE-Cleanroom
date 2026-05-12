@@ -43,6 +43,7 @@
 - Potential for implementing a power provider and matter provider block to attach to networks.
 
 # OPTIMIZATIONS
+- Mixin temperature checks on TAN to avoid any calculations on surpress mode.
 
 # DEBUG / TESTING
 

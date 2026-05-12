@@ -14,7 +14,6 @@ import toughasnails.api.stat.capability.IThirst;
 import toughasnails.api.temperature.Temperature;
 import toughasnails.api.temperature.TemperatureHelper;
 import toughasnails.api.temperature.TemperatureScale;
-import toughasnails.api.temperature.TemperatureScale.TemperatureRange;
 import toughasnails.api.thirst.ThirstHelper;
 
 @Compat(CompatTAN.ID)
@@ -87,8 +86,9 @@ public class CompatTAN {
                 temp.addTemperature(new Temperature(-delta));
             }
         } else {
-            TemperatureRange range = temp.getTemperature().getRange();
-            if (range == TemperatureRange.MILD) return;
+            // ICY = 0-5, HOT = 20-25.
+            // COOL = 6-10, WARM = 15-19.
+            if (current > 6 && current < 19) return;
             int delta = current - neutral;
             if (delta == 0) return;
             int direction = (int) Math.signum(-delta);
