@@ -66,6 +66,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("null")
 public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	public static final int EFFECT_GLITCH_TIME = 0;
 	public static final int EFFECT_CLOAKED = 1;
@@ -83,7 +84,6 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 	public final static short TRANSFORM_TIME = 20 * 34;
 	public final static int MINIMAP_SEND_TIMEOUT = 20 * 2;
 	private final static int BUILTIN_ENERGY_TRANSFER = 1024;
-	private final static int ENERGY_WATCHER_DEFAULT = 29;
 	private final static int ENERGY_PER_JUMP = 512;
 	private static final DamageSource TRANSFORMATION_DAMAGE;
 	static {
@@ -160,6 +160,7 @@ public class AndroidPlayer implements IEnergyStorage, IAndroid {
 		init(player);
 	}
 
+	@SuppressWarnings("deprecation")
 	public static void register() {
 		CapabilityManager.INSTANCE.register(AndroidPlayer.class, new Capability.IStorage<AndroidPlayer>() {
 			@Override
