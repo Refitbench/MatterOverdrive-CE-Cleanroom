@@ -1,5 +1,10 @@
 # Changelog
 ## [1.1.0] - 2026-05-09
+### Added
+- New Dependancy - MixinBooter for Tough As Nails compatibility.
+- Added Tough As Nails compatibility and configuration entries.
+- Tough As Nails - thirst management on ZeroCalories ability with power costs (configurable).
+- Tough As Nails - temperature management on new unlockable ability, either surpress or regulate (configurable).
 ### Fixed
 - Improved performance with managePotionEffects, early exit to avoid per tick arraylists.
 - Improved performance with android stats iteration, cache unlocked stats seperately to avoid checking locked stats, only check stats which are unlocked.

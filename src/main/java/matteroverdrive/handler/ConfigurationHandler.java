@@ -79,6 +79,11 @@ public class ConfigurationHandler {
 	public static final String CATEGORY_ANDROID_PLAYER = CATEGORY_ENTITIES + "." + "android_player";
 	public static final String CATEGORY_GENERAL = "_general";
 	public static final String CATEGORY_COMPATIBILITY = "compatibility";
+	public static final String CATEGORY_COMPATIBILITY_TAN = CATEGORY_COMPATIBILITY + ".toughasnails";
+	public static final String KEY_TAN_ENABLED = "enabled";
+	public static final String KEY_TAN_THIRST_ENERGY_COST = "thirst_energy_cost";
+	public static final String KEY_TAN_TEMPERATURE_ENERGY_COST = "temperature_energy_cost";
+	public static final String KEY_TAN_TEMPERATURE_SUPPRESS_MODE = "temperature_suppress_mode";
 	public static final String CATEGORY_DEBUG = "debug";
 	public static final String KEY_AUTOMATIC_RECIPE_CALCULATION = "automatic matter calculation from recipe";
 	public static final String KEY_AUTOMATIC_FURNACE_CALCULATION = "automatic matter calculation from furnace";
@@ -129,6 +134,10 @@ public class ConfigurationHandler {
 	public boolean showInDevItems;
 	public boolean legacyTritaniumCrateMigrationEnabled;
 	public boolean versionCheckChat;
+	public boolean tanCompatEnabled;
+	public int tanThirstEnergyCost;
+	public int tanTemperatureEnergyCost;
+	public boolean tanTemperatureSuppressMode;
 
 	public ConfigurationHandler(File configDir) {
 		this.configDir = configDir;
@@ -190,6 +199,23 @@ public class ConfigurationHandler {
 		category = config.getCategory(CATEGORY_COMPATIBILITY);
 		category.setComment("Option for other mods");
 		updateCategoryLang(category);
+
+		category = config.getCategory(CATEGORY_COMPATIBILITY_TAN);
+		category.setComment("Tough As Nails compatibility options.");
+		updateCategoryLang(category);
+		tanCompatEnabled = config.getBoolean(KEY_TAN_ENABLED, CATEGORY_COMPATIBILITY_TAN, true,
+				"Enable Tough As Nails compatibility");
+		tanThirstEnergyCost = config.getInt(KEY_TAN_THIRST_ENERGY_COST, CATEGORY_COMPATIBILITY_TAN, 256, 1, 512000,
+				"Energy cost in RF per thirst point restored by the Zero Calories ability. "
+				+ "The thirst bar has 20 points. Default: 256 RF/point. Max: 512000.");
+		tanTemperatureEnergyCost = config.getInt(KEY_TAN_TEMPERATURE_ENERGY_COST, CATEGORY_COMPATIBILITY_TAN, 128, 1, 512000,
+				"Energy cost in RF per temperature step corrected by the Thermal Regulation ability. "
+				+ "Default: 128 RF/step. Max: 512000 (android base energy capacity).");
+		tanTemperatureSuppressMode = config.getBoolean(KEY_TAN_TEMPERATURE_SUPPRESS_MODE, CATEGORY_COMPATIBILITY_TAN, false,
+				"When true, the Thermal Regulation ability freezes body temperature at neutral with no energy cost, "
+				+ "and the thermometer HUD is hidden. "
+				+ "When false (default), the ability only corrects temperature when it reaches the dangerous ICY or HOT "
+				+ "extremes, costs energy per correction step, and leaves the thermometer HUD visible.");
 
 		category = config.getCategory(CATEGORY_GENERAL);
 		category.setComment("General mod settings");
@@ -328,6 +354,10 @@ public class ConfigurationHandler {
 			pylonEnabled = config.getBoolean("dimensional_pylon_enabled", CATEGORY_DEBUG, false, "");
 			showFilledItems = config.getBoolean("show_filled_items", CATEGORY_GENERAL, false, "");
 			showInDevItems = config.getBoolean("showInDevItems", CATEGORY_DEBUG, false, "");
+			tanCompatEnabled = config.getBoolean(KEY_TAN_ENABLED, CATEGORY_COMPATIBILITY_TAN, true, "");
+			tanThirstEnergyCost = config.getInt(KEY_TAN_THIRST_ENERGY_COST, CATEGORY_COMPATIBILITY_TAN, 256, 1, 512000, "");
+			tanTemperatureEnergyCost = config.getInt(KEY_TAN_TEMPERATURE_ENERGY_COST, CATEGORY_COMPATIBILITY_TAN, 128, 1, 512000, "");
+			tanTemperatureSuppressMode = config.getBoolean(KEY_TAN_TEMPERATURE_SUPPRESS_MODE, CATEGORY_COMPATIBILITY_TAN, false, "");
 			config.save();
 		}
 

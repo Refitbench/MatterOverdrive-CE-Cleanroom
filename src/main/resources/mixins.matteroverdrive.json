@@ -1,0 +1,14 @@
+{
+	"package": "${mixin_package}",
+	"required": true,
+	"plugin": "${mixin_package}.MixinPlugin",
+	"refmap": "${mixin_refmap}",
+	"target": "@env(DEFAULT)",
+	"minVersion": "0.8.5",
+	"compatibilityLevel": "JAVA_8",
+	"mixins": [],
+	"server": [],
+	"client": [
+		"client.tan.MixinTemperatureOverlayHandler"
+	]
+}

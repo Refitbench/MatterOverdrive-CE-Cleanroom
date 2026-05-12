@@ -32,6 +32,7 @@ public class OverdriveBioticStats {
 	public static BioticStatItemMagnet itemMagnet;
 	public static BioticStatAirDash airDash;
 	public static BioticstatOxygen oxygen;
+	public static BioticStatTANTemperature tanTemperature;
 
 	public static void init() {
 		teleport = new BioticStatTeleport("teleport", 48);
@@ -56,10 +57,12 @@ public class OverdriveBioticStats {
 		itemMagnet = new BioticStatItemMagnet("item_magnet", 24);
 		airDash = new BioticStatAirDash("air_dash", 28);
 		oxygen = new BioticstatOxygen("oxygen", 12);
+		tanTemperature = new BioticStatTANTemperature("tan_temperature", 24);
 
 		configure();
 	}
 
+	@SuppressWarnings("null")
 	private static void configure() {
 		teleport.addReqiredItm(new ItemStack(MatterOverdrive.ITEMS.h_compensator));
 		teleport.addToEnabledBlacklist(shield);
@@ -93,6 +96,7 @@ public class OverdriveBioticStats {
 		shockwave.addReqiredItm(new ItemStack(MatterOverdrive.ITEMS.item_upgrade, 1, 5));
 		autoShield.setRoot(shield);
 		oxygen.setRoot(zeroCalories);
+		tanTemperature.setRoot(zeroCalories);
 		airDash.setRoot(highJump);
 		itemMagnet.addReqiredItm(new ItemStack(MatterOverdrive.ITEMS.s_magnet, 1));
 		wirelessCharger.addReqiredItm(new ItemStack(MatterOverdrive.ITEMS.item_upgrade, 1, 2));
@@ -130,6 +134,7 @@ public class OverdriveBioticStats {
 		androidStatRegistry.registerStat(itemMagnet);
 		androidStatRegistry.registerStat(airDash);
 		androidStatRegistry.registerStat(oxygen);
+		androidStatRegistry.registerStat(tanTemperature);
 
 		configurationHandler.subscribe(teleport);
 		configurationHandler.subscribe(shield);

@@ -84,6 +84,9 @@ dependencies {
     // OpenComputers
     compileOnly rfg.deobf('li.cil.oc:OpenComputers:MC1.12.2-1.7.5.221')
 
+    // Tough As Nails (optional compile dependency for TAN compat module)
+    compileOnly rfg.deobf('curse.maven:tough-as-nails-246391:2644652')
+
     // Common dependency types (configuration):
     // implementation = dependency available at both compile time and runtime
     // runtimeOnly = runtime dependency

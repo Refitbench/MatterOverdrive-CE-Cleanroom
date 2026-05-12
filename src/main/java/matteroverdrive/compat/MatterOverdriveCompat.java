@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 import matteroverdrive.compat.modules.CompatTConstruct;
 import matteroverdrive.compat.modules.computercraft.CompatComputerCraft;
+import matteroverdrive.compat.modules.tan.CompatTAN;
+import matteroverdrive.compat.modules.tan.CompatTANClient;
 import matteroverdrive.compat.modules.waila.CompatWaila;
 import matteroverdrive.util.MOLog;
 import net.minecraftforge.fml.common.Loader;
@@ -27,11 +29,13 @@ public class MatterOverdriveCompat {
 	public static void registerModules() {
 		register(CompatTConstruct.class);
 		register(CompatComputerCraft.class);
+		register(CompatTAN.class);
 	}
 
 	// Add additional modules that need to run ONLY on the Client
 	public static void registerClientModules() {
 		register(CompatWaila.class);
+		register(CompatTANClient.class);
 	}
 
 	private static boolean register(Class clazz) {

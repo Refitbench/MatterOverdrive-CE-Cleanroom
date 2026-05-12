@@ -2,6 +2,8 @@
 package matteroverdrive.data.biostats;
 
 import com.google.common.collect.Multimap;
+import matteroverdrive.compat.modules.tan.CompatTAN;
+import matteroverdrive.compat.modules.tan.TANHelper;
 import matteroverdrive.entity.android_player.AndroidPlayer;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -19,6 +21,9 @@ public class BioticStatZeroCalories extends AbstractBioticStat {
 			int foodNeeded = 20 - android.getPlayer().getFoodStats().getFoodLevel();
 			int extractedEnergy = android.extractEnergyRaw(foodNeeded * ENERGY_FOOD_MULTIPLY, false);
 			android.getPlayer().getFoodStats().addStats(extractedEnergy / ENERGY_FOOD_MULTIPLY, 0);
+		}
+		if (TANHelper.enabled && !android.getPlayer().world.isRemote && isEnabled(android, level)) {
+			CompatTAN.suppressThirst(android, TANHelper.thirstEnergyCost);
 		}
 	}
 
