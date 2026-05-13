@@ -12,7 +12,7 @@ public final class Reference {
 	public static final String MOD_NAME = "MatterOverdrive: Refitted";
 	public static final String VERSION = Tags.VERSION;
 	public static final String GUI_FACTORY_CLASS = "matteroverdrive.gui.GuiConfigFactory";
-	public static final String DEPENDENCIES = "";
+	public static final String DEPENDENCIES = "required-after:mixinbooter";
 	public static final String CHANNEL_NAME = "mo_channel";
 	public static final String CHANNEL_WEAPONS_NAME = CHANNEL_NAME + ":weapons";
 	public static final String CHANNEL_GUI_NAME = CHANNEL_NAME + ":gui";
