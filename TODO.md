@@ -44,6 +44,7 @@
 
 # OPTIMIZATIONS
 - Mixin temperature checks on TAN to avoid any calculations on surpress mode.
+- Defer thirst updates on TAN to every 39t and calculate drift to bill RF cost.
 
 # DEBUG / TESTING
 
